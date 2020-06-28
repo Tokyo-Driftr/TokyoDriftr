@@ -4,8 +4,15 @@
   "description": "90's Themed Drift Racing Game",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack-dev-server --open"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "three": "^0.118.3"
+  },
+  "devDependencies": {
+  }
 }
