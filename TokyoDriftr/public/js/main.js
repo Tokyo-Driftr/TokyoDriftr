@@ -24,7 +24,7 @@ function main() {
   const fov = 45;
   const aspect = canvas.width/canvas.height;  // the canvas default
   const near = 0.1;
-  const far = 100;
+  const far = 400;
   
   const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
   camera.position.set(10, 15, 5);
