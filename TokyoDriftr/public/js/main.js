@@ -3,6 +3,7 @@ import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/Orb
 import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
 import {keyboardControls} from '/js/controller.js'
 import * as CARS from '/js/cars.js'
+import * as GAME_CONTROL from '/js/game_control.js'
 
 
 
@@ -14,7 +15,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 function main() {
   //set up renderer
-  var renderer = new THREE.WebGLRenderer();
+  var renderer = new THREE.WebGLRenderer({ antialias: true });
 	renderer.setSize( window.innerWidth, window.innerHeight );
       document.body.appendChild( renderer.domElement );
   var canvas = renderer.domElement
@@ -26,7 +27,7 @@ function main() {
   const far = 100;
   
   const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-  camera.position.set(10, 5, 5);
+  camera.position.set(10, 15, 5);
   globalThis.camera = camera
 
   //set up orbit controls
@@ -41,7 +42,7 @@ function main() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#220c41');
 
-  //set up light 1
+  //set up global light
   {
     const skyColor = 0xB1E1FF;  // light blue
     const groundColor = 0xB97A20;  // brownish orange
@@ -67,12 +68,16 @@ function main() {
     var mat = new THREE.MeshBasicMaterial({ color: 0x333333, side: THREE.DoubleSide });
     var plane = new THREE.Mesh(geo, mat);
     plane.rotateX( - Math.PI / 2);
-  scene.add(plane);
+    scene.add(plane);
+    GAME_CONTROL.genDust(scene)
   }
+
+  
   
   {
     const gltfLoader = new GLTFLoader();
     var rx7 = new CARS.rx7(scene, gltfLoader, keyControls)
+    globalThis.rx7 = rx7
     /*
     const gltfLoader = new GLTFLoader();
     gltfLoader.load('res/rx7.glb', (gltf) => {
@@ -94,7 +99,9 @@ function main() {
   }
 
   function render() {
-    console.log(camera.pos)
+    rx7.update()
+    controls.target.set(rx7.gltf.scene.position.x, rx7.gltf.scene.position.y, rx7.gltf.scene.position.z)
+    controls.update()
     if (resizeRendererToDisplaySize(renderer)) {
       const canvas = renderer.domElement;
       camera.aspect = canvas.clientWidth / canvas.clientHeight;
@@ -133,8 +140,10 @@ function main() {
     // point the camera to look at the center of the box
     camera.lookAt(boxCenter.x, boxCenter.y, boxCenter.z);
   }
-
-  requestAnimationFrame(render);
+  setTimeout(() =>{
+    requestAnimationFrame(render);
+  }, 200)
+  
 }
 
 main();
