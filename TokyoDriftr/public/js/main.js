@@ -1,11 +1,11 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import * as OIMO from 'https://unpkg.com/oimo@1.0.9/build/oimo.module.js';
 import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
 import {keyboardControls} from '/js/controller.js'
 import * as CARS from '/js/cars.js'
 import * as GAME_CONTROL from '/js/game_control.js'
-
-
+import * as PHYSICS_WORLD from '/js/physicsWorld.js'
 
 /*
 import * as THREE from 'three';
@@ -19,6 +19,7 @@ function main() {
 	renderer.setSize( window.innerWidth, window.innerHeight );
       document.body.appendChild( renderer.domElement );
   var canvas = renderer.domElement
+
 
   //set up camera
   const fov = 45;
@@ -100,8 +101,11 @@ function main() {
 
   function render() {
     rx7.update()
-    controls.target.set(rx7.gltf.scene.position.x, rx7.gltf.scene.position.y, rx7.gltf.scene.position.z)
     controls.update()
+
+    //Camera
+    controls.target.set(rx7.gltf.scene.position.x, rx7.gltf.scene.position.y + 1, rx7.gltf.scene.position.z)
+    camera.position.set(rx7.gltf.scene.position.x + 1, rx7.gltf.scene.position.y + 1, rx7.gltf.scene.position.z + 1)
     if (resizeRendererToDisplaySize(renderer)) {
       const canvas = renderer.domElement;
       camera.aspect = canvas.clientWidth / canvas.clientHeight;
@@ -109,8 +113,6 @@ function main() {
     }
 
     renderer.render(scene, camera);
-
-    requestAnimationFrame(render);
   }
 
   function frameArea(sizeToFitOnScreen, boxSize, boxCenter, camera) {
@@ -141,8 +143,24 @@ function main() {
     camera.lookAt(boxCenter.x, boxCenter.y, boxCenter.z);
   }
   setTimeout(() =>{
-    requestAnimationFrame(render);
+    tick();
   }, 200)
+
+  var oldTime = Date.now();
+
+  var tick = function() {
+      var dframe = getFramesPassed();
+      render()
+      requestAnimationFrame(tick);
+  }
+
+  //Runs at 60 fps, returns how many frames passed since the last tick
+  function getFramesPassed() {
+      var now = Date.now();
+      var dframe = Math.floor((now - oldTime)*3/50)
+      if (dframe > 0) oldTime = Date.now();
+      return dframe;
+  }
   
 }
 
