@@ -27,4 +27,4 @@ app.get('/res/:name', function (req, res, next) {
 
 
 
-app.listen(80, () => console.log('starting server on port 80'));
+app.listen(8080, () => console.log('starting server on port 80'));

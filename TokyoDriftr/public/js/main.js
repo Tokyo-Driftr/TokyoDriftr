@@ -103,9 +103,16 @@ function main() {
     rx7.update()
     controls.update()
 
-    //Camera
-    controls.target.set(rx7.gltf.scene.position.x, rx7.gltf.scene.position.y + 1, rx7.gltf.scene.position.z)
-    camera.position.set(rx7.gltf.scene.position.x + 1, rx7.gltf.scene.position.y + 1, rx7.gltf.scene.position.z + 1)
+    //Camera update
+
+    //Generate cam pos based 
+    controls.target.set(rx7.gltf.scene.position.x, rx7.gltf.scene.position.y + 2, rx7.gltf.scene.position.z)
+    console.log(Math.sin(rx7.gltf.scene.rotation.y), Math.cos(rx7.gltf.scene.rotation.y))
+    camera.position.set(
+      rx7.gltf.scene.position.x - Math.sin(rx7.gltf.scene.rotation.y)*8, 
+      rx7.gltf.scene.position.y + 2, 
+      rx7.gltf.scene.position.z - Math.cos(rx7.gltf.scene.rotation.y)*8
+    )
     if (resizeRendererToDisplaySize(renderer)) {
       const canvas = renderer.domElement;
       camera.aspect = canvas.clientWidth / canvas.clientHeight;
