@@ -107,7 +107,6 @@ function main() {
 
     //Generate cam pos based 
     controls.target.set(rx7.gltf.scene.position.x, rx7.gltf.scene.position.y + 2, rx7.gltf.scene.position.z)
-    console.log(Math.sin(rx7.gltf.scene.rotation.y), Math.cos(rx7.gltf.scene.rotation.y))
     camera.position.set(
       rx7.gltf.scene.position.x - Math.sin(rx7.gltf.scene.rotation.y)*8, 
       rx7.gltf.scene.position.y + 2, 
