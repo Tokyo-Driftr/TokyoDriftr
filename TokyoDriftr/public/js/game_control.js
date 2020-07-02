@@ -4,7 +4,7 @@ game_control.js: helper functions to do with the game and assets, etc
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
 //literally just generates random low poly dust
-export function genDust(scene, x=0, z=0, y=0, num=500, radius=100){
+export function genDust(scene, x=100, z=0, y=0, num=100, radius=100){
     for (var i = 0; i < num; i++){
         var scaleFactor = getRandomArbitary(.05,.3)
         var geometry = new THREE.BoxGeometry(scaleFactor, scaleFactor, scaleFactor);
