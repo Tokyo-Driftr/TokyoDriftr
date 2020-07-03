@@ -2,9 +2,11 @@ import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import * as OIMO from 'https://unpkg.com/oimo@1.0.9/build/oimo.module.js';
 import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
+
 import {keyboardControls} from '/js/controller.js'
 import * as CARS from '/js/cars.js'
 import * as GAME_CONTROL from '/js/game_control.js'
+import * as ROAD from '/js/road.js'
 import * as PHYSICS_WORLD from '/js/physicsWorld.js'
 
 /*
@@ -79,6 +81,7 @@ function main() {
     const gltfLoader = new GLTFLoader();
     var rx7 = new CARS.rx7(scene, gltfLoader, keyControls)
     globalThis.rx7 = rx7
+    var testRoad = ROAD.testRoad(gltfLoader, scene)
     /*
     const gltfLoader = new GLTFLoader();
     gltfLoader.load('res/rx7.glb', (gltf) => {
@@ -99,6 +102,7 @@ function main() {
     return needResize;
   }
 
+ 
   var y_axis = new THREE.Vector3( 0, 1, 0 );
   function render() {
     rx7.update()
