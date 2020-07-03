@@ -2,7 +2,7 @@ import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 export class road{
     leapfrogArray = []
     x_axis = new THREE.Vector3( 0, 0, 1 );
-    curvePointDistance = 3.5
+    curvePointDistance = 3.2
     nextLoadPoint = 0
     constructor(path, loader, scene, numAssets = 110){
         //path is an array of vector3 elements
@@ -79,7 +79,6 @@ export function testRoad(loader, scene){
         (new THREE.Vector3(0, 0, 120)),
         (new THREE.Vector3(-20, 0, 100)),
         (new THREE.Vector3(-50, 0, 40)),
-        (new THREE.Vector3(-20, 0, 0)),
     ]
     return new road(path, loader, scene)
 }
