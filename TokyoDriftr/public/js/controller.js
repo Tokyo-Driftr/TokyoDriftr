@@ -5,6 +5,7 @@ export class keyboardControls{
 		this.brake = false
 		this.turning = false
 
+		this.one = false
 		this.left = false
 		this.right = false
 
@@ -27,6 +28,8 @@ export class keyboardControls{
 				self.checkTurn()
 			} else if (key == "s" || key == "ArrowDown" || key == " ") {
 				self.brake = true
+			} else if (key == "1") {
+				self.one=true
 			}
 		}function onDocumentKeyUp(event) {
 			//console.log("WHOOP!", event.key)
@@ -43,6 +46,8 @@ export class keyboardControls{
 				self.checkTurn()
 			} else if (key == "s" || key == "ArrowDown" || key == " ") {
 				self.brake = false
+			} else if (key == "1") {
+				self.one=false
 			}
 		}
 	}

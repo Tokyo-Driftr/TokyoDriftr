@@ -6,8 +6,10 @@ import * as CARS from '/js/cars.js'
 import * as GAME_CONTROL from '/js/game_control.js'
 import { stateManager } from '/js/stateManager.js'
 import { gameState } from '/js/gameState.js'
+import { playGameState } from '/js/playGameState.js';
 
-export class playGameState extends gameState{
+
+export class menuGameState extends gameState{
     //this.scene
     //this.renderer
     //this.canvas
@@ -15,24 +17,15 @@ export class playGameState extends gameState{
     //this.objects = {}
     constructor(renderer,scene) {
         super()
-
-        this.loaded = false
-        this.unloaded = false
-        this.changeScene
-
         this.objects = {}
         this.camcontrols
         this.renderer = renderer
         //Pointer to the canvas
         this.canvas = this.renderer.domElement
         this.scene = scene
-        scene.background = new THREE.Color('#000000');
         this.keyControls=new keyboardControls()
-        
         this.Entered()
     }
-
-    //Setups up initial scene for playGameState
     Entered() {
         //set up camera
         const fov = 45;
@@ -49,7 +42,6 @@ export class playGameState extends gameState{
         this.camcontrols.target.set(0, 0, 0);
         this.camcontrols.update();
         globalThis.controls = this.camcontrols
-        
 
         //set up global light
         {
@@ -70,26 +62,31 @@ export class playGameState extends gameState{
             this.scene.add(this.objects['light'].target);
         }
 
-        //add plane
+        //set up text
+        var loader = new THREE.FontLoader();
+        loader.load( 'js/font.json', ( font ) => {
+            var textGeo = new THREE.TextGeometry( 'W-Accelerate\nA/D-Left/Right\nHold Space-Drift\n1 To Start', {
+              font: font,
+              size: 1,
+              height: 1,
+              curveSegments: 1,
+              bevelSize: 1,
+              bevelOffset: 0,
+              bevelSegments: 1
+            } );
+            var materials = [
+              new THREE.MeshPhongMaterial( { color: 0xffffff, flatShading: true } ), // front
+              new THREE.MeshPhongMaterial( { color: 0xffffff } ) // side
+            ];
+            this.objects['textMesh'] = new THREE.Mesh( textGeo, materials );
+            this.objects['textMesh'].position.set(-5,5,5)
+            this.objects['textMesh'].quaternion.copy(camera.quaternion)
+            this.objects['camera'].lookAt(this.objects['textMesh'])
+            this.scene.add(this.objects['textMesh'])
+          } );
 
-        {
-            var geo = new THREE.PlaneBufferGeometry(2000, 2000, 8, 8);
-            var mat = new THREE.MeshBasicMaterial({ color: 0x333333, side: THREE.DoubleSide });
-            this.objects['plane'] = new THREE.Mesh(geo, mat);
-            this.objects['plane'].rotateX( - Math.PI / 2);
-            this.scene.add(this.objects['plane']);
-            GAME_CONTROL.genDust(this.scene)
-        }
-        //add car and car controler
-        {
-            const gltfLoader = new GLTFLoader();
-            this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, this.keyControls)
-            globalThis.rx7 = this.objects['rx7']
-        }
-        this.loaded = true
+        this.Draw()
     }
-
-    //Renders each frame
     Draw() {
         //Must be an arrow function or it loses context of 'this'
         let resizeRendererToDisplaySize = (renderer) => {
@@ -160,27 +157,13 @@ export class playGameState extends gameState{
             if (dframe > 0) oldTime = Date.now();
             return dframe;
         }
-          
+        
     }
     Update() {
-        var y_axis = new THREE.Vector3( 0, 1, 0 );
-        this.objects['rx7'].update()
-        //Camera update
-        const camera_distance = 25
-
-        //Generate cam pos based 
-        //controls.target.set(rx7.gltf.scene.position.x, rx7.gltf.scene.position.y + 2, rx7.gltf.scene.position.z)
-        var cameraPos = new THREE.Vector3()
-        //calc distance from car
-        cameraPos.set(0, 8, camera_distance)
-        //rotate to the opposite of velocity vector
-        cameraPos.applyAxisAngle(y_axis, rx7.direction.angle() + Math.PI)
-        //add the position
-        cameraPos.add(rx7.gltf.scene.position)
-        this.objects['camera'].position.set(cameraPos.x, cameraPos.y, cameraPos.z)
-
-        this.camcontrols.target.set(this.objects['rx7'].gltf.scene.position.x, this.objects['rx7'].gltf.scene.position.y, this.objects['rx7'].gltf.scene.position.z)
         this.camcontrols.update()
+        if(this.keyControls.one) {
+            this.manager.setState(new playGameState(this.renderer,this.scene))
+        }
     }
     Leaving() {
         function clearThree(obj){
@@ -191,16 +174,15 @@ export class playGameState extends gameState{
             if(obj.geometry) obj.geometry.dispose()
         
             if(obj.material){ 
-            //in case of map, bumpMap, normalMap, envMap ...
-            Object.keys(obj.material).forEach(prop => {
-                if(!obj.material[prop])
-                return         
-                if(typeof obj.material[prop].dispose === 'function')                                  
-                obj.material[prop].dispose()                                                        
-            })
-            //obj.material.dispose()
+                //in case of map, bumpMap, normalMap, envMap ...
+                Object.keys(obj.material).forEach(prop => {
+                    if(!obj.material[prop])
+                    return         
+                    if(typeof obj.material[prop].dispose === 'function')                                  
+                    obj.material[prop].dispose()                                                        
+                })
+                //obj.material.dispose()
             }
-            this.unloaded = true
         }   
         clearThree(this.scene)
     }
