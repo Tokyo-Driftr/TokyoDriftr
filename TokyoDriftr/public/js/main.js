@@ -99,19 +99,27 @@ function main() {
     return needResize;
   }
 
+  var y_axis = new THREE.Vector3( 0, 1, 0 );
   function render() {
     rx7.update()
-    controls.update()
+    
 
     //Camera update
 
+    const camera_distance = 25
+
     //Generate cam pos based 
+    //controls.target.set(rx7.gltf.scene.position.x, rx7.gltf.scene.position.y + 2, rx7.gltf.scene.position.z)
+    var cameraPos = new THREE.Vector3()
+    //calc distance from car
+    cameraPos.set(0, 8, camera_distance)
+    //rotate to the opposite of velocity vector
+    cameraPos.applyAxisAngle(y_axis, rx7.direction.angle() + Math.PI)
+    //add the position
+    cameraPos.add(rx7.gltf.scene.position)
+    camera.position.set(cameraPos.x, cameraPos.y, cameraPos.z)
     controls.target.set(rx7.gltf.scene.position.x, rx7.gltf.scene.position.y + 2, rx7.gltf.scene.position.z)
-    camera.position.set(
-      rx7.gltf.scene.position.x - Math.sin(rx7.gltf.scene.rotation.y)*8, 
-      rx7.gltf.scene.position.y + 2, 
-      rx7.gltf.scene.position.z - Math.cos(rx7.gltf.scene.rotation.y)*8
-    )
+    controls.update()
     if (resizeRendererToDisplaySize(renderer)) {
       const canvas = renderer.domElement;
       camera.aspect = canvas.clientWidth / canvas.clientHeight;
