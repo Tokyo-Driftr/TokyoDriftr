@@ -53,7 +53,7 @@ class base_car{
 			}
 			//rotate car into drift
 			if(absangle(this.driftDeltaDirection) < this.maxDriftAngle) 
-				this.driftDeltaDirection.rotateAround(this.center, this.controller.turnDirection * this.driftSpeed)
+				this.driftDeltaDirection.rotateAround(this.center, this.driftDirection * this.driftSpeed)
 			//put sparks and stuff after it's been drifting for a bit
 		}
 		else if(this.drifting){
@@ -113,10 +113,10 @@ export class rx7 extends base_car{
 		super(scene, loader, controller, "rx7_3.glb")
 		this.max_speed = .6
 		this.acceleration = .01
-		this.handling = .05
+		this.handling = .03
 		this.driftHandling = .01 // handling increase in the direction of the drift
 
-		this.maxDriftAngle = .5 //radians
+		this.maxDriftAngle = .3 //radians
 		this.driftSpeed = .01 //rate that the car's orientation changes into and out of drifts
 	}
 }

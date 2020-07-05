@@ -10,5 +10,6 @@ export class stateManager {
     getState() {
         return this.currentState;
     }
+    
 
 }

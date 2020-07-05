@@ -4,6 +4,7 @@ import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoa
 import {keyboardControls} from '/js/controller.js'
 import * as CARS from '/js/cars.js'
 import * as GAME_CONTROL from '/js/game_control.js'
+import * as ROAD from '/js/road.js'
 import { stateManager } from '/js/stateManager.js'
 import { gameState } from '/js/gameState.js'
 
@@ -80,11 +81,12 @@ export class playGameState extends gameState{
             this.scene.add(this.objects['plane']);
             GAME_CONTROL.genDust(this.scene)
         }
-        //add car and car controler
+        //add car, car controler, and road
         {
             const gltfLoader = new GLTFLoader();
             this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, this.keyControls)
             globalThis.rx7 = this.objects['rx7']
+            this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene)
         }
         this.loaded = true
     }
