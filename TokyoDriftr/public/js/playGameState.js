@@ -9,17 +9,8 @@ import { stateManager } from '/js/stateManager.js'
 import { gameState } from '/js/gameState.js'
 
 export class playGameState extends gameState{
-    //this.scene
-    //this.renderer
-    //this.canvas
-    //this.camcontrols
-    //this.objects = {}
-    constructor(renderer,scene) {
-        super()
-
-        this.loaded = false
-        this.unloaded = false
-        this.changeScene
+    constructor(renderer,scene,manager) {
+        super(manager)
 
         this.objects = {}
         this.camcontrols
@@ -27,10 +18,8 @@ export class playGameState extends gameState{
         //Pointer to the canvas
         this.canvas = this.renderer.domElement
         this.scene = scene
-        scene.background = new THREE.Color('#000000');
+        this.scene.background = new THREE.Color('#000000');
         this.keyControls=new keyboardControls()
-        
-        this.Entered()
     }
 
     //Setups up initial scene for playGameState
@@ -88,81 +77,12 @@ export class playGameState extends gameState{
             globalThis.rx7 = this.objects['rx7']
             this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene)
         }
-        this.loaded = true
+        this.Draw()
     }
 
     //Renders each frame
     Draw() {
-        //Must be an arrow function or it loses context of 'this'
-        let resizeRendererToDisplaySize = (renderer) => {
-            const canvas = renderer.domElement;
-            const width = canvas.clientWidth;
-            const height = canvas.clientHeight;
-            const needResize = canvas.width !== width || canvas.height !== height;
-            if (needResize) {
-                renderer.setSize(width, height, false);
-            }
-            return needResize;
-        };
-        
-        //Render Loop must be arrow function or else it loses context of 'this'
-        let render = () => {
-            if (resizeRendererToDisplaySize(this.renderer)) {
-                this.canvas = this.renderer.domElement;
-                this.objects["camera"].aspect = canvas.clientWidth / canvas.clientHeight;
-                this.objects["camera"].updateProjectionMatrix();
-            }
-        
-            this.renderer.render(this.scene, this.objects["camera"]);
-            this.Update()
-        };
-        /*
-        function frameArea(sizeToFitOnScreen, boxSize, boxCenter, camera) {
-            const halfSizeToFitOnScreen = sizeToFitOnScreen * 0.5;
-            const halfFovY = THREE.MathUtils.degToRad(camera.fov * .5);
-            const distance = halfSizeToFitOnScreen / Math.tan(halfFovY);
-            // compute a unit vector that points in the direction the camera is now
-            // in the xz plane from the center of the box
-            const direction = (new THREE.Vector3())
-                .subVectors(camera.position, boxCenter)
-                .multiply(new THREE.Vector3(1, 0, 1))
-                .normalize();
-        
-            // move the camera to a position distance units way from the center
-            // in whatever direction the camera was from the center already
-            camera.position.copy(direction.multiplyScalar(distance).add(boxCenter));
-        
-            // pick some near and far values for the frustum that
-            // will contain the box.
-            camera.near = boxSize / 100;
-            camera.far = boxSize * 100;
-        
-            camera.updateProjectionMatrix();
-        
-            // point the camera to look at the center of the box
-            camera.lookAt(boxCenter.x, boxCenter.y, boxCenter.z);
-        }
-        */
-        setTimeout(() =>{
-            tick();
-        }, 200)
-    
-        var oldTime = Date.now();
-    
-        var tick = function() {
-            var dframe = getFramesPassed();
-            render()
-            requestAnimationFrame(tick);
-        }
-    
-        //Runs at 60 fps, returns how many frames passed since the last tick
-        function getFramesPassed() {
-            var now = Date.now();
-            var dframe = Math.floor((now - oldTime)*3/50)
-            if (dframe > 0) oldTime = Date.now();
-            return dframe;
-        }
-          
+        this.manager.draw()
     }
     Update() {
         var y_axis = new THREE.Vector3( 0, 1, 0 );
@@ -202,7 +122,7 @@ export class playGameState extends gameState{
             })
             //obj.material.dispose()
             }
-            this.unloaded = true
+            return 1
         }   
         clearThree(this.scene)
     }

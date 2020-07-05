@@ -19,8 +19,8 @@ function main() {
   var scene = new THREE.Scene();
   scene.background = new THREE.Color('#000000');
 
-  var state = new stateManager(new playGameState(renderer, scene))
-  
+  var state = new stateManager(renderer, scene)
+  state.setState(new menuGameState(renderer, scene, state))
 }
 
 main();

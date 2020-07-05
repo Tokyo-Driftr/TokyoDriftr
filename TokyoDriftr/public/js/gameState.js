@@ -1,4 +1,7 @@
 export class gameState {
+    constructor(manager) {
+        this.manager = manager
+    }
     Entered() {
 
     }
