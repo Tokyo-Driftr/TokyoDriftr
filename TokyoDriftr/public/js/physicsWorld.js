@@ -36,39 +36,38 @@ export function addBody(id, collisionData, mesh) {
 
 //Performs necessary calculations to simulate driving a car
 export function carPhysicsTick(car) {
+    console.log(car.controller)
+
     var body = bodys.find(b => b.id == car.id);
     if (!body) return;
 
-    //console.log(body)
-    //console.log(car.controller)
-
     var pos = body.body.getPosition();
     var dir = new THREE.Vector3(0, 0, 1)
-    var init = new THREE.Matrix4()
-    init.set = Matrix3to4(body.body.rotation)
     dir.applyQuaternion(body.body.getQuaternion())
-
     if (car.controller.accelerate) {
         if (Math.sqrt(body.body.linearVelocity.x*body.body.linearVelocity.x+body.body.linearVelocity.z*body.body.linearVelocity.z) < car.max_speed) {
             body.body.applyImpulse(pos, scalarMul(dir, car.acceleration))
         }
+    } else if (car.controller.brake) {
+        body.body.applyImpulse(pos, scalarMul(dir, -car.handling*100))
     }
     if (car.controller.turning) {
-        //body.body.controlRot = true
         var theta = car.controller.turnDirection * car.handling * amplitude({x: body.body.linearVelocity.x, y:0, z: body.body.linearVelocity.z })
         if (!theta) theta = 0
         body.body.angularVelocity.y = theta
-        console.log(body.body)
-        //body.body.controlRot = false
+        if (car.controller.brake) {
+            body.body.applyImpulse(pos, scalarMul(dir, -car.handling*100))
+        } else if (car.controller.accelerate) {
+            var temp = scalarMul(dir, Math.sqrt(body.body.linearVelocity.x*body.body.linearVelocity.x+body.body.linearVelocity.z*body.body.linearVelocity.z))
+            body.body.linearVelocity.x = temp.x
+            body.body.linearVelocity.z = temp.z
+        } else {
+            var temp = scalarMul(dir, Math.sqrt(body.body.linearVelocity.x*body.body.linearVelocity.x+body.body.linearVelocity.z*body.body.linearVelocity.z))
+            body.body.linearVelocity.x = temp.x
+            body.body.linearVelocity.z = temp.z
+        }
     } else {
         body.body.angularVelocity.y = 0
-    }
-    if (car.drifting) {
-
-    } else {
-        var temp = scalarMul(dir, Math.sqrt(body.body.linearVelocity.x*body.body.linearVelocity.x+body.body.linearVelocity.z*body.body.linearVelocity.z))
-        body.body.linearVelocity.x = temp.x
-        body.body.linearVelocity.z = temp.z
     }
 }
 

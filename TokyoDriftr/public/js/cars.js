@@ -146,7 +146,7 @@ export class ae86 extends base_car{
         this.id = "ae86"
         this.max_speed = 45
         this.acceleration = 100
-        this.handling = .03
+        this.handling = .02
         this.driftHandling = .03 // handling increase in the direction of the drift
 
         this.maxDriftAngle = .7 //radians
