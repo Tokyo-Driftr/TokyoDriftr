@@ -86,13 +86,15 @@ export class playGameState extends gameState{
             const gltfLoader = new GLTFLoader();
             this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, keyControls)
             globalThis.rx7 = this.objects['rx7']
-            this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene)
+            this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene, this.objects['rx7'])
+            globalThis.road = this.objects['testRoad']
         }
         this.Draw()
     }
 
     //Renders each frame
     Draw() {
+        
         //Must be an arrow function or it loses context of 'this'
         let resizeRendererToDisplaySize = (renderer) => {
             const canvas = renderer.domElement;
@@ -167,6 +169,7 @@ export class playGameState extends gameState{
     Update() {
         var y_axis = new THREE.Vector3( 0, 1, 0 );
         this.objects['rx7'].update()
+        this.objects['testRoad'].update()
         //Camera update
         const camera_distance = 25
 

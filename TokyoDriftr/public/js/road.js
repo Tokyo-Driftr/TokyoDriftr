@@ -1,28 +1,39 @@
+/*
+road.js controls the drawing of the in-game road. The road is built from a 3d vector,
+but the y-component is ignored. There are issues with the threejs vector2 at the time of writing this.
+
+The road holds a list  of n total road assets and "leapfrogs" them from behind the player to in front of them as they go along.
+*/
+
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 export class road{
-    leapfrogArray = []
-    x_axis = new THREE.Vector3( 0, 0, 1 );
-    curvePointDistance = 3.2
-    nextLoadPoint = 0
-    constructor(path, loader, scene, numAssets = 110){
-        //path is an array of vector3 elements
-        this.curve = new THREE.CatmullRomCurve3(path)
-        var self = this
-        loader.load(
+	constructor(path, loader, scene, camera, numAssets = 50){
+		//path is an array of vector3 elements
+		var self = this
+		self.loaded = false
+		loader.load(
 			'res/street2.glb',
 			// called when the resource is loaded
 			function ( gltf ) {
-                var road = gltf
-                road.scene.position.x = 1000
-                self.leapfrogArray.push(road.scene)
-                for(var i = 0; i < numAssets-1; i++){
-                    self.leapfrogArray.push(road.scene.clone())
-                }
-                for (var i = 0; i < numAssets; i++){
-                    scene.add(self.leapfrogArray[i])
-                }
-        
-                self.calcPoints()
+				var assets = []
+				var road = gltf
+				assets.push({
+					model: road.scene,
+					asset: road.asset,
+					width: 3.5,
+				})
+				for(var i = 0; i < numAssets-1; i++){
+					assets.push({
+						model: road.scene.clone(),
+						width: 3.5,
+					})
+				}
+				for (var i = 0; i < numAssets; i++){
+					scene.add(assets[i].model)
+				}
+				console.log(assets)
+				self.frogger = new leapFrogger(path, assets, camera)
+				self.loaded = true
 			},
 			// called while loading is progressing
 			function ( xhr ) {
@@ -33,57 +44,150 @@ export class road{
 				console.log( 'An error happened while loading road', error );
 			}
 		);
-        
-    }
-    calcPoints(){
-        this.nextLoadPoint = 0
-        this.curvePoints = []
-        this.curveAngles = []
-        var length = this.curve.getLength()
-        console.log("len:", length)
-        for (var i = 0; i < Math.ceil(this.curve.getLength() / this.curvePointDistance); i++){
-            var thisPoint = this.curve.getPointAt((i * this.curvePointDistance) / length)
-            this.curvePoints.push(thisPoint)
-            this.curveAngles.push(this.curve.getTangentAt((i * this.curvePointDistance) / length))
-        }
-        this.update()
-    }
-    update(){
-        console.log("num points:", this.curveAngles)
-        //check if anything is behind collision plane (ignore for now)
+		
+	}
+	update(){
+		this.frogger.update()
+	}
 
-        //pop stuff from leapfrog queue and add to front
-        while(this.leapfrogArray.length > 0 && this.nextLoadPoint < this.curvePoints.length){
-            console.log("loop", this.nextLoadPoint)
-            this.leapfrogArray[0].position.x = this.curvePoints[this.nextLoadPoint].x
-            this.leapfrogArray[0].position.z = this.curvePoints[this.nextLoadPoint].z
-
-            //this.leapfrogArray[0].rotation.x = 0
-            this.leapfrogArray[0].rotation.y = Math.atan(this.curveAngles[this.nextLoadPoint].x / this.curveAngles[this.nextLoadPoint].z)
-            //this.leapfrogArray[0].rotation.z = 0
-
-            //setVec(this.leapfrogArray[0].rotation, this.curveAngles[this.nextLoadPoint])
-            this.nextLoadPoint++
-            this.leapfrogArray.splice(0, 1)
-        }
-    }
 }
 
-export function testRoad(loader, scene){
-    var path = [
-        (new THREE.Vector3(-20, 0, 0)),
-        (new THREE.Vector3(35 , 0, 0)),
-        (new THREE.Vector3(60, 0, 40)),
-        (new THREE.Vector3(60, 0, 70)),
-        (new THREE.Vector3(40, 0, 90)),
-        (new THREE.Vector3(0, 0, 120)),
-        (new THREE.Vector3(-20, 0, 100)),
-        (new THREE.Vector3(-50, 0, 40)),
-    ]
-    return new road(path, loader, scene)
+
+
+
+
+
+
+
+
+
+
+
+export class leapFrogger{
+	/*
+	leapfrogger is what controls the "models-along-path" behavior for the road and buildings.
+	it takes assets in the form:
+	{
+		width: n,
+		model: <gltf.scene>
+		asset: <gltf.asset>
+	}
+	*/
+	unusedAssets = []
+	usedAssets = []
+	x_axis = new THREE.Vector3( 0, 0, 1 );
+	curvePosition = 0
+	dist_behind_car = 10
+	constructor(path, assets, car){
+		
+		//path is an array of vector3 elements
+		this.curve = new THREE.CatmullRomCurve3(path, true)
+		this.unusedAssets = assets
+		this.curveLength = this.curve.getLength()
+		this.car = car
+		this.reset()
+		this.update()
+
+
+
+		
+		
+	}
+	reset(){
+		while(this.usedAssets.length != 0){
+			this.unusedAssets.push(this.usedAssets.pop())
+		}
+		this.unusedAssets.forEach((asset) => {
+			console.log(asset)
+			asset.model.position.set(1000,0,0)
+		})
+		this.curvePosition = 0
+	}
+	getNextPoint(width){
+		/*
+			Returns the next XYZ point in the path in this form:
+			{
+				position: <vector3>,
+				rotation: <vector3>
+			}
+		*/
+		console.log("len:", this.curveLength)
+
+		var point = this.curve.getPointAt(this.curvePosition)
+		var tangent = this.curve.getTangentAt(this.curvePosition)
+		var rotation = new THREE.Vector3( 0, Math.atan(tangent.x / tangent.z), 0 )
+		this.curvePosition += width/this.curveLength
+		return {
+			position: point,
+			rotation: rotation
+		}
+	}
+	update(){
+		/*
+			updates the models along the path, performs the leapfrogging
+		*/
+
+		//check if anything is behind collision plane
+		//pop stuff from leapfrog queue and add to front
+		while(this.unusedAssets.length > 0){
+			if(this.curvePosition > 1)this.curvePosition -=1
+
+			var data = this.getNextPoint(this.unusedAssets[0].width)
+
+			this.unusedAssets[0].model.position.set(data.position.x, data.position.y, data.position.z )
+			this.unusedAssets[0].model.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z )
+			this.usedAssets.push(this.unusedAssets.shift())
+
+			
+			this.nextLoadPoint++
+		}
+		this.processLeap()
+	}
+
+	processLeap(){
+		var carPos = this.car.gltf.scene.position
+	
+		while(carPos.distanceTo(this.usedAssets[this.dist_behind_car].model.position) > carPos.distanceTo(this.usedAssets[this.dist_behind_car+1].model.position)){
+			console.log("foo")
+			this.usedAssets[0].model.position.x = 1000
+			this.unusedAssets.push(this.usedAssets.shift())
+		}
+	}
+
+	processOffscreenObjects(){
+		this.camera.updateMatrixWorld(); // make sure the camera matrix is updated
+		this.camera.matrixWorldInverse.getInverse( this.camera.matrixWorld );
+		this.cameraViewProjectionMatrix.multiplyMatrices( this.camera.projectionMatrix, this.camera.matrixWorldInverse );
+		this.frustum.setFromProjectionMatrix( this.cameraViewProjectionMatrix );
+		
+		// this.frustum is now ready to check all the objects you need
+		var intersecting = true
+		console.log("foo")
+		while(this.usedAssets.length > 0 && this.frustum.intersectsObject( this.usedAssets[0].asset)){
+			console.log("remove")
+			this.unusedAssets.push(this.unusedAssets[0])
+			this.usedAssets.splice(0, 1)
+		}
+	}
+}
+
+
+
+export function testRoad(loader, scene, car){
+	var path = [
+		(new THREE.Vector3(-20, 0, 0)),
+		(new THREE.Vector3(35 , 0, 0)),
+		(new THREE.Vector3(60, 0, 40)),
+		(new THREE.Vector3(60, 0, 70)),
+		(new THREE.Vector3(40, 0, 90)),
+		(new THREE.Vector3(0, 0, 120)),
+		(new THREE.Vector3(-20, 0, 100)),
+		(new THREE.Vector3(-50, 0, 40)),
+	]
+	return new road(path, loader, scene, car)
 }
 
 function setVec(v1, v2){
-    //it's insane that this isn't built in
-    v1.set(v2.x, v2.y, v2.z)
+	//it's insane that this isn't built in
+	v1.set(v2.x, v2.y, v2.z)
 }
