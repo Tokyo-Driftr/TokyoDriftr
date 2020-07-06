@@ -1,12 +1,13 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
-import {keyboardControls} from '/js/controller.js'
-import * as CARS from '/js/cars.js'
-import * as GAME_CONTROL from '/js/game_control.js'
-import * as ROAD from '/js/road.js'
-import { stateManager } from '/js/stateManager.js'
-import { gameState } from '/js/gameState.js'
+import {keyboardControls} from '/js/controller.js';
+import * as CARS from '/js/cars.js';
+import * as GAME_CONTROL from '/js/game_control.js';
+import * as PHYSICS_WORLD from '/js/physicsWorld.js';
+import * as ROAD from '/js/road.js';
+import { stateManager } from '/js/stateManager.js';
+import { gameState } from '/js/gameState.js';
 
 export class playGameState extends gameState{
     constructor(renderer,scene,manager) {
@@ -39,6 +40,9 @@ export class playGameState extends gameState{
         this.camcontrols.target.set(0, 0, 0);
         this.camcontrols.update();
         globalThis.controls = this.camcontrols
+
+        //Initiate physics world
+        PHYSICS_WORLD.initPhysicsWorld();
         
 
         //set up global light
@@ -69,6 +73,17 @@ export class playGameState extends gameState{
             this.objects['plane'].rotateX( - Math.PI / 2);
             this.scene.add(this.objects['plane']);
             GAME_CONTROL.genDust(this.scene)
+            var collisionBody = {
+                type:'box', // type of shape : sphere, box, cylinder 
+                size:[2000,1,2000], // size of shape
+                pos:[0,-1.1,0], // start position in degree
+                rot:[0,0,0], // start rotation in degree
+                move:false, // dynamic or statique
+                density: 100,
+                friction: 1,
+                restitution: 0.2
+            }
+            PHYSICS_WORLD.addBody("plane", collisionBody, this.objects['plane'])
         }
         //add car, car controler, and road
         {
@@ -76,6 +91,25 @@ export class playGameState extends gameState{
             this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, this.keyControls)
             globalThis.rx7 = this.objects['rx7']
             this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene)
+        }
+        //Please remove eventually.  Collision box
+        {
+            var geometry = new THREE.BoxGeometry(5, 5, 5);
+            var material = new THREE.MeshBasicMaterial( { color: 0x4F4F4F } );
+            var cube = new THREE.Mesh( geometry, material );
+            cube.position.set(10, 20, 10);
+            this.scene.add(cube);
+            var collisionBody = {
+                type:'box', // type of shape : sphere, box, cylinder 
+                size:[5,5,5], // size of shape
+                pos:[10,20,10], // start position in degree
+                rot:[0,0,0], // start rotation in degree
+                move:true, // dynamic or statique
+                density: 5,
+                friction: 0.2,
+                restitution: 0.2
+            }
+            PHYSICS_WORLD.addBody("testcube", collisionBody, cube);
         }
         this.Draw()
     }
@@ -87,6 +121,7 @@ export class playGameState extends gameState{
     Update() {
         var y_axis = new THREE.Vector3( 0, 1, 0 );
         this.objects['rx7'].update()
+        PHYSICS_WORLD.physicsTick()
         //Camera update
         const camera_distance = 25
 
@@ -96,7 +131,9 @@ export class playGameState extends gameState{
         //calc distance from car
         cameraPos.set(0, 8, camera_distance)
         //rotate to the opposite of velocity vector
-        cameraPos.applyAxisAngle(y_axis, rx7.direction.angle() + Math.PI)
+        var velocity = PHYSICS_WORLD.getVelocity("rx7")
+        var correctedangle = (Math.abs(velocity.x) + Math.abs(velocity.z) > 1) ? new THREE.Vector2(velocity.z, velocity.x) : new THREE.Vector2(Math.sin(this.objects['rx7'].gltf.scene.rotation.x), Math.cos(this.objects['rx7'].gltf.scene.rotation.z))
+        cameraPos.applyAxisAngle(y_axis, correctedangle.angle() + Math.PI)
         //add the position
         cameraPos.add(rx7.gltf.scene.position)
         this.objects['camera'].position.set(cameraPos.x, cameraPos.y, cameraPos.z)
