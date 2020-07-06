@@ -119,10 +119,8 @@ export class menuGameState extends gameState{
                 })
                 //obj.material.dispose()
             }
-            console.log("HUH?")
             return 1
         }   
-        console.log("frick")
         clearThree(this.scene)
     }
 }
