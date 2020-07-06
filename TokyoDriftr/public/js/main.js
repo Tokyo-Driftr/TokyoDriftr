@@ -8,7 +8,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 */
 
 function main() {
-  var state = new stateManager(new playGameState)
+    var state = new stateManager(new playGameState)
 }
 
 main();
