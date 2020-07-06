@@ -36,7 +36,6 @@ export function addBody(id, collisionData, mesh) {
 
 //Performs necessary calculations to simulate driving a car
 export function carPhysicsTick(car) {
-    console.log(car.controller)
 
     var body = bodys.find(b => b.id == car.id);
     if (!body) return;
