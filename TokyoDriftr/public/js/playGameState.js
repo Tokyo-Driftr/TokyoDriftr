@@ -90,7 +90,8 @@ export class playGameState extends gameState{
             const gltfLoader = new GLTFLoader();
             this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, this.keyControls)
             globalThis.rx7 = this.objects['rx7']
-            this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene)
+            this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene, this.objects['rx7'])
+            globalThis.road = this.objects['testRoad']
         }
         //Please remove eventually.  Collision box
         {
@@ -122,6 +123,7 @@ export class playGameState extends gameState{
         var y_axis = new THREE.Vector3( 0, 1, 0 );
         this.objects['rx7'].update()
         PHYSICS_WORLD.physicsTick()
+        this.objects['testRoad'].update()
         //Camera update
         const camera_distance = 25
 

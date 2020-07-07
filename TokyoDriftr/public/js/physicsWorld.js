@@ -96,11 +96,11 @@ export function carPhysicsTick(car) {
             //body.body.angularVelocity.y = unsignedMin(theta, body.body.angularVelocity.y+0.1*car.controller.turnDirection)
         } else if (body.body.angularVelocity.y != 0) {
         var newAngular = Math.max(Math.abs(body.body.angularVelocity.y) - car.handling*10, 0) * ((body.body.angularVelocity.y > 0 ) ? 1 : -1)
-            if (newAngular) {
-                body.body.angularVelocity.y = newAngular;
-            }
-            //body.body.angularVelocity.y = 0;
+        if (newAngular) {
+            body.body.angularVelocity.y = newAngular;
         }
+        //body.body.angularVelocity.y = 0;
+    }
 
         //Rolling wheels make velcoity vector step towards direction vector
         var theta = Math.acos(dir.dot(vhat))
