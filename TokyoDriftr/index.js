@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const path = require('path');
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const bodyParser = require('body-parser'); 
 const user = require('./models/userSchema.js');
 
