@@ -132,7 +132,7 @@ export class playGameState extends gameState{
         cameraPos.set(0, 8, camera_distance)
         //rotate to the opposite of velocity vector
         var velocity = PHYSICS_WORLD.getVelocity("rx7")
-        var correctedangle = (Math.abs(velocity.x) + Math.abs(velocity.z) > 1) ? new THREE.Vector2(velocity.z, velocity.x) : new THREE.Vector2(Math.sin(this.objects['rx7'].gltf.scene.rotation.x), Math.cos(this.objects['rx7'].gltf.scene.rotation.z))
+        var correctedangle = (Math.sqrt(velocity.x*velocity.x + velocity.z*velocity.z) > 10) ? new THREE.Vector2(velocity.z, velocity.x) : new THREE.Vector2(Math.cos(this.objects['rx7'].gltf.scene.rotation.y), Math.sin(this.objects['rx7'].gltf.scene.rotation.y))
         cameraPos.applyAxisAngle(y_axis, correctedangle.angle() + Math.PI)
         //add the position
         cameraPos.add(rx7.gltf.scene.position)

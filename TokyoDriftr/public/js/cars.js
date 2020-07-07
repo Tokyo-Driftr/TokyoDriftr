@@ -32,14 +32,14 @@ class base_car{
                 var collisionBody = {
                     type:'box', // type of shape : sphere, box, cylinder 
                     size:[5,2,5], // size of shape
-                    pos:[0, 10, 0], // start position in degree
+                    pos:[0, 2, 0], // start position in degree
                     rot:[0,90,0], // start rotation in degree
                     move:true, // dynamic or statique
                     density: 10,
                     friction: 0.2,
                     restitution: 0.2
                 }
-                PHYSICS_WORLD.addBody("rx7", collisionBody, self.gltf.scene)
+                PHYSICS_WORLD.addBody(self.id, collisionBody, self.gltf.scene)
             },
             // called while loading is progressing
             function ( xhr ) {
@@ -133,7 +133,7 @@ export class rx7 extends base_car{
         this.max_speed = 45
         this.acceleration = 100
         this.handling = .03
-        this.driftHandling = .01 // handling increase in the direction of the drift
+        this.driftHandling = .05 // handling increase in the direction of the drift
 
         this.maxDriftAngle = .3 //radians
         this.driftSpeed = .01 //rate that the car's orientation changes into and out of drifts
