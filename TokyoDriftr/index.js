@@ -40,8 +40,10 @@ app.get('/res/:name', function (req, res, next) {
 //Add the new user into the mongodb database
 //Json information is inside of req.body
 app.post('/newtime', function(req, res) {
+  console.log(req.body)
   if(!req.body === undefined || !req.body.name === undefined || !req.body.time === undefined || req.body.course === undefined) {
     res.json({ statusCode: '400'})
+    
   }
   else {
     var newUser = new user({name: req.body.name, time: req.body.time, course: req.body.course})

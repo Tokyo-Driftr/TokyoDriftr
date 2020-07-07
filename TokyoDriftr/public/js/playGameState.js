@@ -2,25 +2,27 @@ import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
 import {keyboardControls} from '/js/controller.js';
+import { CSS2DRenderer, CSS2DObject } from 'https://unpkg.com/three/examples/jsm/renderers/CSS2DRenderer.js';
 import * as CARS from '/js/cars.js';
 import * as GAME_CONTROL from '/js/game_control.js';
 import * as PHYSICS_WORLD from '/js/physicsWorld.js';
 import * as ROAD from '/js/road.js';
-import { stateManager } from '/js/stateManager.js';
 import { gameState } from '/js/gameState.js';
+import { endScreenGameState } from '/js/endScreenGameState.js';
 
 export class playGameState extends gameState{
-    constructor(renderer,scene,manager) {
+    constructor(renderer,scene,manager,data) {
         super(manager)
-
+        this.choice = data.choice
         this.objects = {}
         this.camcontrols
         this.renderer = renderer
-        //Pointer to the canvas
         this.canvas = this.renderer.domElement
         this.scene = scene
         this.scene.background = new THREE.Color('#000000');
         this.keyControls=new keyboardControls()
+        this.startTime = Date.now()
+        this.changing = false
     }
 
     //Setups up initial scene for playGameState
@@ -118,6 +120,7 @@ export class playGameState extends gameState{
     Draw() {
         this.manager.draw()
     }
+    //Update() watches for any keystrokes and updates any moving objects
     Update() {
         var y_axis = new THREE.Vector3( 0, 1, 0 );
         this.objects['rx7'].update()
@@ -140,8 +143,17 @@ export class playGameState extends gameState{
 
         this.camcontrols.target.set(this.objects['rx7'].gltf.scene.position.x, this.objects['rx7'].gltf.scene.position.y, this.objects['rx7'].gltf.scene.position.z)
         this.camcontrols.update()
+
+        //if at the end of the race 
+        if(this.keyControls.change && !this.changing){
+            this.changing = true
+            var data = {time: Date.now()-this.startTime}
+            this.manager.setState(new endScreenGameState(this.renderer, this.scene, this.manager, data))
+        }
     }
-    Leaving() {
+    //Leaving() clears all objects, gemoetry, and materials on the scene when changing to another scene
+    //Leaving() is async so that when objects are being deleted it doesn't start deleting objects in the new scene
+    async Leaving() {
         function clearThree(obj){
             while(obj.children.length > 0){ 
             clearThree(obj.children[0])
