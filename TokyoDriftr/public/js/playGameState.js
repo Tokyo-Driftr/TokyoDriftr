@@ -34,6 +34,7 @@ export class playGameState extends gameState{
         this.objects["camera"] = new THREE.PerspectiveCamera(fov, aspect, near, far);
         this.objects["camera"].position.set(10, 20, 5);
         globalThis.camera = this.objects["camera"]
+        globalThis.three = THREE
 
         //set up orbit controls
         this.camcontrols = new OrbitControls(this.objects["camera"], this.canvas);
@@ -126,6 +127,7 @@ export class playGameState extends gameState{
     Draw() {
         this.manager.draw()
     }
+    
     Update() {
         var y_axis = new THREE.Vector3( 0, 1, 0 );
         this.objects['rx7'].update()

@@ -71,9 +71,9 @@ export class road_physics_stripe{
 				"lRailBody": lRailBody,
 				"rRailBody": rRailBody,
 				"update": (data)=>{
-					console.log("update called")
 					data.roadBody.body.setPosition(data.model.position)
 					data.roadBody.body.setQuaternion(data.model.quaternion)
+					data.roadBody.body.move = true
 				}})
 			scene.add(clone)
 		}
@@ -112,7 +112,7 @@ export class leapFrogger{
 			car is simply a reference to the car object, containing gltf
 			back_elements is the number of elements to draw behind the car.
 		*/
-		this.curve = new THREE.CatmullRomCurve3(path, true)
+		this.curve = new THREE.CatmullRomCurve3(path)
 		this.unusedAssets = assets
 		this.curveLength = this.curve.getLength()
 		this.car = car
@@ -129,7 +129,6 @@ export class leapFrogger{
 			this.unusedAssets.push(this.usedAssets.pop())
 		}
 		this.unusedAssets.forEach((asset) => {
-			console.log(asset)
 			asset.model.position.set(1000,0,0)
 		})
 		this.curvePosition = 0
@@ -142,8 +141,6 @@ export class leapFrogger{
 				rotation: <vector3>
 			}
 		*/
-		console.log("len:", this.curveLength)
-
 		var point = this.curve.getPointAt(this.curvePosition)
 		var tangent = this.curve.getTangentAt(this.curvePosition)
 		var rotation = new THREE.Vector3( 0, Math.atan(tangent.x / tangent.z), 0 )
@@ -198,7 +195,7 @@ export class vectorRoad{
 	stripe_distance = 0.
 
 	constructor(path, scene, car){
-		var curve = new THREE.CatmullRomCurve3(path, true)
+		var curve = new THREE.CatmullRomCurve3(path)
 		var road_walls = [];
 		road_walls.push( new THREE.Vector2( 2, this.road_width ) );
 		road_walls.push( new THREE.Vector2( -this.barrier_height, this.road_width ) );
@@ -221,7 +218,7 @@ export class vectorRoad{
 		})
 
 		var extrudeSettings = {
-			steps: 100,
+			steps: path.length * 5,
 			bevelEnabled: false,
 			extrudePath: curve
 		};
@@ -248,22 +245,57 @@ export class vectorRoad{
 
 		
 	}
-	update(){
-		//do nothing
-	}
 
 }
 
 
 export class road{
+	/*
+		road is the master class for the road, it controls all leapfrogging behavior and draws the road
+	*/
 	constructor(path, scene, car){
 		this.road_stripes = new road_physics_stripe(path, scene, car)
 		this.road_shape = new vectorRoad(path, scene, car)
 	}
 	update(){
 		this.road_stripes.update()
-		this.road_shape.update()
 	}
+}
+
+function gen2dpath(numPoints = 10, minSegDist = 10, maxSegDist = 50){
+	var path = [
+		(new THREE.Vector2(-20, 0)),
+		(new THREE.Vector2(35 , 0)),
+	]
+	
+	function intersect_self(curve){
+		if (curve.length < 4) return false
+		var latestPoint = curve[curve.length - 1]
+		for(var i = 0; i < curve.length - 2; i++){
+			var dist = (latestPoint.distanceTo(curve[i]))
+			if(dist < maxSegDist/2)
+				return true
+		}
+		return false
+	}
+	var center = new THREE.Vector2(0,0)
+	for (var i = 0; i < numPoints; i++){
+		var distance = Math.round(Math.random() * maxSegDist + minSegDist)
+		var angle = path[path.length - 1].clone().sub(path[path.length - 2]).rotateAround(center, (Math.random() - 0.5)*3).normalize()
+		angle.multiplyScalar(distance)
+		angle.add(path[path.length - 1])
+		path.push(angle)
+		if(intersect_self(path)){
+			//console.log("INTERSECT")
+			i -= 1
+			path.pop()
+		}
+	}
+	var path3d = []
+	for (var i = 0; i < path.length; i++){
+		path3d.push(new THREE.Vector3(path[i].x, 0, path[i].y))
+	}
+	return path3d
 }
 
 export function testRoad(loader, scene, car){
@@ -277,5 +309,6 @@ export function testRoad(loader, scene, car){
 		(new THREE.Vector3(-20, 0, 100)),
 		(new THREE.Vector3(-50, 0, 40)),
 	]
+	path = gen2dpath(20)
 	return new road(path, scene, car)
 }
