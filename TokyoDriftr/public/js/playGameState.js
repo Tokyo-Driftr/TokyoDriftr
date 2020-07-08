@@ -112,6 +112,11 @@ export class playGameState extends gameState{
             }
             PHYSICS_WORLD.addBody("testcube", collisionBody, cube);
         }
+        setTimeout(() => {
+            PHYSICS_WORLD.bodys.forEach(b => {
+                this.scene.add(b.hitbox);
+            });
+        }, 2000)
         this.Draw()
     }
 

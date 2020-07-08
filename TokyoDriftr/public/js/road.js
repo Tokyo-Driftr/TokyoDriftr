@@ -6,6 +6,8 @@ The road holds a list  of n total road assets and "leapfrogs" them from behind t
 */
 
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import * as PHYSICS_WORLD from "/js/physicsWorld.js";
+
 export class road{
 	constructor(path, loader, scene, camera, numAssets = 50){
 		//path is an array of vector3 elements
@@ -23,15 +25,57 @@ export class road{
 					width: 3.5,
 				})
 				for(var i = 0; i < numAssets-1; i++){
+					var clone = road.scene.clone()
 					assets.push({
-						model: road.scene.clone(),
+						model: clone,
 						width: 3.5,
 					})
+					PHYSICS_WORLD.addBody(
+						"road".concat(clone.uuid), 
+						{
+							type: 'box',
+							size: [12, 0.1, 5],
+							pos: [road.scene.position.x, road.scene.position.y, road.scene.position.z],
+							rot: [0, 0, 0],
+							move: false,
+							density: 100,
+							friction: 1,
+							restitution: 1
+						}, 
+						road.scene
+					)
+					PHYSICS_WORLD.addBody(
+						"lrail".concat(clone.uuid), 
+						{
+							type: 'box',
+							size: [1, 1, 1],
+							pos: [road.scene.position.x, road.scene.position.y, road.scene.position.z],
+							rot: [0, 0, 0],
+							move: false,
+							density: 100,
+							friction: 1,
+							restitution: 1
+						}, 
+						road.scene
+					)
+					PHYSICS_WORLD.addBody(
+						"rrail".concat(clone.uuid), 
+						{
+							type: 'box',
+							size: [1, 1, 1],
+							pos: [road.scene.position.x, road.scene.position.y, road.scene.position.z],
+							rot: [0, 0, 0],
+							move: false,
+							density: 100,
+							friction: 1,
+							restitution: 1
+						}, 
+						road.scene
+					)
 				}
 				for (var i = 0; i < numAssets; i++){
 					scene.add(assets[i].model)
 				}
-				console.log(assets)
 				self.frogger = new leapFrogger(path, assets, camera)
 				self.loaded = true
 			},
@@ -98,7 +142,6 @@ export class leapFrogger{
 			this.unusedAssets.push(this.usedAssets.pop())
 		}
 		this.unusedAssets.forEach((asset) => {
-			console.log(asset)
 			asset.model.position.set(1000,0,0)
 		})
 		this.curvePosition = 0
@@ -111,7 +154,6 @@ export class leapFrogger{
 				rotation: <vector3>
 			}
 		*/
-		console.log("len:", this.curveLength)
 
 		var point = this.curve.getPointAt(this.curvePosition)
 		var tangent = this.curve.getTangentAt(this.curvePosition)
@@ -131,11 +173,23 @@ export class leapFrogger{
 		//pop stuff from leapfrog queue and add to front
 		while(this.unusedAssets.length > 0){
 			if(this.curvePosition > 1)this.curvePosition -=1
-
 			var data = this.getNextPoint(this.unusedAssets[0].width)
 
 			this.unusedAssets[0].model.position.set(data.position.x, data.position.y, data.position.z )
 			this.unusedAssets[0].model.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z )
+			
+			var roadbod, lrailbod, rrailbod;
+			PHYSICS_WORLD.bodys.forEach(b => {
+				if (b.id == "road".concat(this.unusedAssets[0].model.uuid)) {
+					b.body.setPosition(this.unusedAssets[0].model.position)
+					b.body.setQuaternion(this.unusedAssets[0].model.quaternion)
+				} else if (b.id == "lrail".concat(this.unusedAssets[0].model.uuid)) {
+
+				} else if (b.id == "rrail".concat(this.unusedAssets[0].model.uuid)) {
+
+				}
+			})
+			
 			this.usedAssets.push(this.unusedAssets.shift())
 
 			
@@ -147,10 +201,13 @@ export class leapFrogger{
 	processLeap(){
 		var carPos = this.car.gltf.scene.position
 	
+		try{
 		while(carPos.distanceTo(this.usedAssets[this.dist_behind_car].model.position) > carPos.distanceTo(this.usedAssets[this.dist_behind_car+1].model.position)){
-			console.log("foo")
 			this.usedAssets[0].model.position.x = 1000
 			this.unusedAssets.push(this.usedAssets.shift())
+		}
+		} catch (err) {
+			console.log("game made a fucky: ", err)
 		}
 	}
 
@@ -162,7 +219,6 @@ export class leapFrogger{
 		
 		// this.frustum is now ready to check all the objects you need
 		var intersecting = true
-		console.log("foo")
 		while(this.usedAssets.length > 0 && this.frustum.intersectsObject( this.usedAssets[0].asset)){
 			console.log("remove")
 			this.unusedAssets.push(this.unusedAssets[0])

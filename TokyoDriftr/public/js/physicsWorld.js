@@ -9,6 +9,7 @@ import * as OIMO from 'https://unpkg.com/oimo@1.0.9/build/oimo.module.js';
 export var physicsWorld;
 //Colission bodys in world; each element is a {id, collision body, mesh}
 export var bodys = [];
+var showHitBoxes = false;
 
 //Creates physics world
 export function initPhysicsWorld() {
@@ -23,14 +24,20 @@ export function initPhysicsWorld() {
 	});
 }
 
-//Add a new body pair to bodys
+//Add a new body to bodys
 export function addBody(id, collisionData, mesh) {
     var newBody = physicsWorld.add(collisionData);
+    var geometry = new THREE.BoxGeometry(collisionData.size[0], collisionData.size[1], collisionData.size[2]);
+    var material = new THREE.MeshBasicMaterial( { color: 16777215*Math.random() } );
+    var cube = new THREE.Mesh( geometry, material );
+    cube.visible = false;
+    cube.position.copy( newBody.getPosition() );
     bodys.push({
-        id: id,
-        body: newBody,
-        mesh: mesh,
-        move: collisionData.move
+        id: id, //string id for object
+        body: newBody, //oimo collision object
+        mesh: mesh, //corrosponding three mesh
+        move: collisionData.move, //does the object move
+        hitbox: cube//box representing hitbox
     });
 }
 
@@ -120,13 +127,15 @@ export function carPhysicsTick(car) {
 
 //Runs a new physics calculation.  Should be called each tick
 export function physicsTick() {
-	physicsWorld.step();
+    physicsWorld.step();
 
     bodys.forEach(b => {
-        if (b.mesh != null && b.move) {
+        if (b.mesh != false && b.move) {
             b.mesh.position.copy( b.body.getPosition() ); 
             b.mesh.quaternion.copy( b.body.getQuaternion() );
         }
+        b.hitbox.position.copy( b.body.getPosition() ); 
+        b.hitbox.quaternion.copy( b.body.getQuaternion() );
     });
 }
 
@@ -138,7 +147,17 @@ export function getVelocity(id) {
         return false
 }
 
+export function toggleHitboxes() {
+    showHitBoxes = !showHitBoxes
+    bodys.forEach(b => {
+        //if (b.mesh) b.mesh.visible = !showHitBoxes
+        b.hitbox.visible = showHitBoxes
+    });
+}
+
+//----
 //util
+//----
 
 //Returns magnitude of a vec3
 function magnitude(vec) {
