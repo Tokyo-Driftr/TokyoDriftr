@@ -8,101 +8,82 @@ The road holds a list  of n total road assets and "leapfrogs" them from behind t
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import * as PHYSICS_WORLD from "/js/physicsWorld.js";
 
-export class road{
-	constructor(path, loader, scene, camera, numAssets = 50){
-		//path is an array of vector3 elements
-		var self = this
-		self.loaded = false
-		loader.load(
-			'res/street2.glb',
-			// called when the resource is loaded
-			function ( gltf ) {
-				var assets = []
-				var road = gltf
-				assets.push({
-					model: road.scene,
-					asset: road.asset,
-					width: 3.5,
-				})
-				for(var i = 0; i < numAssets-1; i++){
-					var clone = road.scene.clone()
-					assets.push({
-						model: clone,
-						width: 3.5,
-					})
-					PHYSICS_WORLD.addBody(
-						"road".concat(clone.uuid), 
-						{
-							type: 'box',
-							size: [12, 0.1, 5],
-							pos: [road.scene.position.x, road.scene.position.y, road.scene.position.z],
-							rot: [0, 0, 0],
-							move: false,
-							density: 100,
-							friction: 1,
-							restitution: 1
-						}, 
-						road.scene
-					)
-					PHYSICS_WORLD.addBody(
-						"lrail".concat(clone.uuid), 
-						{
-							type: 'box',
-							size: [1, 1, 1],
-							pos: [road.scene.position.x, road.scene.position.y, road.scene.position.z],
-							rot: [0, 0, 0],
-							move: false,
-							density: 100,
-							friction: 1,
-							restitution: 1
-						}, 
-						road.scene
-					)
-					PHYSICS_WORLD.addBody(
-						"rrail".concat(clone.uuid), 
-						{
-							type: 'box',
-							size: [1, 1, 1],
-							pos: [road.scene.position.x, road.scene.position.y, road.scene.position.z],
-							rot: [0, 0, 0],
-							move: false,
-							density: 100,
-							friction: 1,
-							restitution: 1
-						}, 
-						road.scene
-					)
-				}
-				for (var i = 0; i < numAssets; i++){
-					scene.add(assets[i].model)
-				}
-				self.frogger = new leapFrogger(path, assets, camera)
-				self.loaded = true
-			},
-			// called while loading is progressing
-			function ( xhr ) {
-				console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-			},
-			// called when loading has errors
-			function ( error ) {
-				console.log( 'An error happened while loading road', error );
-			}
-		);
-		
+export class road_physics_stripe{
+	/*
+		This class works by using the leapfrogger to display a dotted line along the center of the road.
+		Leapfrogger takes an optional function that can be called post-update, and this takes advantage
+		of that function in order to update its corresponding physics object
+	*/
+	constructor(path, scene, car, numAssets = 30){
+		//create a model for the yellow center stripe and then add it to a leapfrogger
+		var stripe_material = new THREE.MeshLambertMaterial( { color: 0x774400, wireframe: false } );
+		var stripe_geometry = new THREE.BoxGeometry(.5, .3, 2);
+		var stripe_mesh = new THREE.Mesh( stripe_geometry, stripe_material );
+		var meshes = []
+		for (var i = 0; i < numAssets; i++){
+			var clone = stripe_mesh.clone()
+			var roadBody = PHYSICS_WORLD.addBody(
+				"road".concat(clone.uuid), 
+				{
+					type: 'box',
+					size: [12, 1.1, 5],
+					pos: [0, 2, 0],
+					rot: [0, 0, 0],
+					move: false,
+					density: 100,
+					friction: 1,
+					restitution: 1
+				}, 
+				scene
+			)
+			var lRailBody = PHYSICS_WORLD.addBody(
+				"lrail".concat(clone.uuid), 
+				{
+					type: 'box',
+					size: [1, 1, 1],
+					pos: [0, 0, 0],
+					rot: [0, 0, 0],
+					move: false,
+					density: 100,
+					friction: 1,
+					restitution: 1
+				}, 
+				scene
+			)
+			var rRailBody = PHYSICS_WORLD.addBody(
+				"rrail".concat(clone.uuid), 
+				{
+					type: 'box',
+					size: [1, 1, 1],
+					pos: [0, 0, 0],
+					rot: [0, 0, 0],
+					move: false,
+					density: 100,
+					friction: 1,
+					restitution: 1
+				}, 
+				scene
+			)
+			meshes.unshift({
+				"model": clone,
+				"width": 4,
+				"roadBody": roadBody,
+				"lRailBody": lRailBody,
+				"rRailBody": rRailBody,
+				"update": (data)=>{
+					console.log("update called")
+					data.roadBody.body.setPosition(data.model.position)
+					data.roadBody.body.setQuaternion(data.model.quaternion)
+				}})
+			scene.add(clone)
+		}
+		this.leapFrogger = new leapFrogger(path, meshes, car)
 	}
 	update(){
-		this.frogger.update()
+		this.leapFrogger.update()
 	}
 
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -114,17 +95,23 @@ export class leapFrogger{
 	{
 		width: n,
 		model: <gltf.scene>
-		asset: <gltf.asset>
+		update: <optional function>
 	}
+	the function update is called with the asset passed into iself whenever the leapfrogging occurs.
+	The asset may contain additional data for internal use in its update funciton
 	*/
 	unusedAssets = []
 	usedAssets = []
 	x_axis = new THREE.Vector3( 0, 0, 1 );
 	curvePosition = 0
 	dist_behind_car = 10
-	constructor(path, assets, car){
-		
-		//path is an array of vector3 elements
+	constructor(path, assets, car, back_elements = 10){
+		/*
+			path is an array of vector3 elements, used to define the leapfrog path.
+			assets is a list of assets in the format given above
+			car is simply a reference to the car object, containing gltf
+			back_elements is the number of elements to draw behind the car.
+		*/
 		this.curve = new THREE.CatmullRomCurve3(path, true)
 		this.unusedAssets = assets
 		this.curveLength = this.curve.getLength()
@@ -142,6 +129,7 @@ export class leapFrogger{
 			this.unusedAssets.push(this.usedAssets.pop())
 		}
 		this.unusedAssets.forEach((asset) => {
+			console.log(asset)
 			asset.model.position.set(1000,0,0)
 		})
 		this.curvePosition = 0
@@ -154,6 +142,7 @@ export class leapFrogger{
 				rotation: <vector3>
 			}
 		*/
+		console.log("len:", this.curveLength)
 
 		var point = this.curve.getPointAt(this.curvePosition)
 		var tangent = this.curve.getTangentAt(this.curvePosition)
@@ -169,30 +158,17 @@ export class leapFrogger{
 			updates the models along the path, performs the leapfrogging
 		*/
 
-		//check if anything is behind collision plane
-		//pop stuff from leapfrog queue and add to front
 		while(this.unusedAssets.length > 0){
 			if(this.curvePosition > 1)this.curvePosition -=1
 			var data = this.getNextPoint(this.unusedAssets[0].width)
 
 			this.unusedAssets[0].model.position.set(data.position.x, data.position.y, data.position.z )
 			this.unusedAssets[0].model.rotation.set(data.rotation.x, data.rotation.y, data.rotation.z )
-			
-			var roadbod, lrailbod, rrailbod;
-			PHYSICS_WORLD.bodys.forEach(b => {
-				if (b.id == "road".concat(this.unusedAssets[0].model.uuid)) {
-					b.body.setPosition(this.unusedAssets[0].model.position)
-					b.body.setQuaternion(this.unusedAssets[0].model.quaternion)
-				} else if (b.id == "lrail".concat(this.unusedAssets[0].model.uuid)) {
+			if(this.unusedAssets[0]["update"] != undefined)
+				this.unusedAssets[0].update(this.unusedAssets[0])
 
-				} else if (b.id == "rrail".concat(this.unusedAssets[0].model.uuid)) {
-
-				}
-			})
-			
 			this.usedAssets.push(this.unusedAssets.shift())
 
-			
 			this.nextLoadPoint++
 		}
 		this.processLeap()
@@ -201,33 +177,94 @@ export class leapFrogger{
 	processLeap(){
 		var carPos = this.car.gltf.scene.position
 	
-		try{
 		while(carPos.distanceTo(this.usedAssets[this.dist_behind_car].model.position) > carPos.distanceTo(this.usedAssets[this.dist_behind_car+1].model.position)){
+	
 			this.usedAssets[0].model.position.x = 1000
 			this.unusedAssets.push(this.usedAssets.shift())
-		}
-		} catch (err) {
-			console.log("game made a fucky: ", err)
-		}
-	}
-
-	processOffscreenObjects(){
-		this.camera.updateMatrixWorld(); // make sure the camera matrix is updated
-		this.camera.matrixWorldInverse.getInverse( this.camera.matrixWorld );
-		this.cameraViewProjectionMatrix.multiplyMatrices( this.camera.projectionMatrix, this.camera.matrixWorldInverse );
-		this.frustum.setFromProjectionMatrix( this.cameraViewProjectionMatrix );
-		
-		// this.frustum is now ready to check all the objects you need
-		var intersecting = true
-		while(this.usedAssets.length > 0 && this.frustum.intersectsObject( this.usedAssets[0].asset)){
-			console.log("remove")
-			this.unusedAssets.push(this.unusedAssets[0])
-			this.usedAssets.splice(0, 1)
 		}
 	}
 }
 
+export class vectorRoad{
+	/*
+		the vectorRoad class implements the road by extruding a 2d shape along the path of the road.
+		this is good for performance and more visually appealing than the leapfrog method.
+		The leapfrog method is still used for the center stripe, however.
+	*/
+	road_width = 7
+	barrier_width = 0.5
+	barrier_height = 0.75
+	stripe_width = 0.5
+	stripe_distance = 0.
 
+	constructor(path, scene, car){
+		var curve = new THREE.CatmullRomCurve3(path, true)
+		var road_walls = [];
+		road_walls.push( new THREE.Vector2( 2, this.road_width ) );
+		road_walls.push( new THREE.Vector2( -this.barrier_height, this.road_width ) );
+		road_walls.push( new THREE.Vector2( -this.barrier_height, (this.road_width + this.barrier_width) ) );
+		road_walls.push( new THREE.Vector2( 2, (this.road_width + this.barrier_width) ) );
+		road_walls.push( new THREE.Vector2( 2, -(this.road_width + this.barrier_width) ) );
+		road_walls.push( new THREE.Vector2( -this.barrier_height, -(this.road_width + this.barrier_width) ) );
+		road_walls.push( new THREE.Vector2( -this.barrier_height, -this.road_width ) );
+		road_walls.push( new THREE.Vector2( 2, -this.road_width ) );
+
+		var road_floor = [];
+		road_floor.push( new THREE.Vector2( 2, this.road_width ) );
+		road_floor.push( new THREE.Vector2( -0.1, this.road_width ) );
+		road_floor.push( new THREE.Vector2( -0.1, -this.road_width ) );
+		road_floor.push( new THREE.Vector2( 2, -this.road_width ) );
+
+		var road_highlight = []
+		road_walls.forEach((elem, i) => {
+			road_highlight.push(new THREE.Vector2(elem.x * 0.2, elem.y * 0.95))
+		})
+
+		var extrudeSettings = {
+			steps: 100,
+			bevelEnabled: false,
+			extrudePath: curve
+		};
+
+
+		var walls_material = new THREE.MeshLambertMaterial( { color: 0x333333, wireframe: false } );
+		var walls_shape = new THREE.Shape( road_walls );
+		var walls_geometry = new THREE.ExtrudeBufferGeometry( walls_shape, extrudeSettings );
+		var walls_mesh = new THREE.Mesh( walls_geometry, walls_material );
+
+		var floor_material = new THREE.MeshPhongMaterial( { color: 0x111111, wireframe: false } );
+		var floor_shape = new THREE.Shape( road_floor );
+		var floor_geometry = new THREE.ExtrudeBufferGeometry( floor_shape, extrudeSettings );
+		var floor_mesh = new THREE.Mesh( floor_geometry, floor_material );
+
+		var highlight_material = new THREE.MeshPhongMaterial( { color: 0x992255, wireframe: false } );
+		var highlight_shape = new THREE.Shape( road_highlight );
+		var highlight_geometry = new THREE.ExtrudeBufferGeometry( highlight_shape, extrudeSettings );
+		var highlight_mesh = new THREE.Mesh( highlight_geometry, highlight_material );
+
+		scene.add( walls_mesh );
+		scene.add( floor_mesh );
+		scene.add( highlight_mesh );
+
+		
+	}
+	update(){
+		//do nothing
+	}
+
+}
+
+
+export class road{
+	constructor(path, scene, car){
+		this.road_stripes = new road_physics_stripe(path, scene, car)
+		this.road_shape = new vectorRoad(path, scene, car)
+	}
+	update(){
+		this.road_stripes.update()
+		this.road_shape.update()
+	}
+}
 
 export function testRoad(loader, scene, car){
 	var path = [
@@ -240,10 +277,5 @@ export function testRoad(loader, scene, car){
 		(new THREE.Vector3(-20, 0, 100)),
 		(new THREE.Vector3(-50, 0, 40)),
 	]
-	return new road(path, loader, scene, car)
-}
-
-function setVec(v1, v2){
-	//it's insane that this isn't built in
-	v1.set(v2.x, v2.y, v2.z)
+	return new road(path, scene, car)
 }

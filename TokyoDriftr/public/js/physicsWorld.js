@@ -32,13 +32,15 @@ export function addBody(id, collisionData, mesh) {
     var cube = new THREE.Mesh( geometry, material );
     cube.visible = false;
     cube.position.copy( newBody.getPosition() );
-    bodys.push({
+    var newBody = {
         id: id, //string id for object
         body: newBody, //oimo collision object
         mesh: mesh, //corrosponding three mesh
         move: collisionData.move, //does the object move
         hitbox: cube//box representing hitbox
-    });
+    };
+    bodys.push(newBody);
+    return newBody;
 }
 
 //Performs necessary calculations to simulate driving a car

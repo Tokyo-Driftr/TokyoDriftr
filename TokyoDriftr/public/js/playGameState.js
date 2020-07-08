@@ -90,8 +90,10 @@ export class playGameState extends gameState{
             const gltfLoader = new GLTFLoader();
             this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, this.keyControls)
             globalThis.rx7 = this.objects['rx7']
-            this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene, this.objects['rx7'])
-            globalThis.road = this.objects['testRoad']
+            setTimeout(() => {
+                this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene, this.objects['rx7'])
+                globalThis.road = this.objects['testRoad']
+            }, 100);
         }
         //Please remove eventually.  Collision box
         {
