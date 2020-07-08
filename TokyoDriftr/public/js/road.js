@@ -11,6 +11,7 @@ export class road{
 		//path is an array of vector3 elements
 		var self = this
 		self.loaded = false
+		/*
 		loader.load(
 			'res/street2.glb',
 			// called when the resource is loaded
@@ -44,22 +45,14 @@ export class road{
 				console.log( 'An error happened while loading road', error );
 			}
 		);
-		
+		*/
+		var pt = new vectorRoad(scene, new THREE.CatmullRomCurve3(path, true))
 	}
 	update(){
-		this.frogger.update()
+		//this.frogger.update()
 	}
 
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -127,8 +120,6 @@ export class leapFrogger{
 			updates the models along the path, performs the leapfrogging
 		*/
 
-		//check if anything is behind collision plane
-		//pop stuff from leapfrog queue and add to front
 		while(this.unusedAssets.length > 0){
 			if(this.curvePosition > 1)this.curvePosition -=1
 
@@ -148,30 +139,92 @@ export class leapFrogger{
 		var carPos = this.car.gltf.scene.position
 	
 		while(carPos.distanceTo(this.usedAssets[this.dist_behind_car].model.position) > carPos.distanceTo(this.usedAssets[this.dist_behind_car+1].model.position)){
-			console.log("foo")
+	
 			this.usedAssets[0].model.position.x = 1000
 			this.unusedAssets.push(this.usedAssets.shift())
 		}
 	}
-
-	processOffscreenObjects(){
-		this.camera.updateMatrixWorld(); // make sure the camera matrix is updated
-		this.camera.matrixWorldInverse.getInverse( this.camera.matrixWorld );
-		this.cameraViewProjectionMatrix.multiplyMatrices( this.camera.projectionMatrix, this.camera.matrixWorldInverse );
-		this.frustum.setFromProjectionMatrix( this.cameraViewProjectionMatrix );
-		
-		// this.frustum is now ready to check all the objects you need
-		var intersecting = true
-		console.log("foo")
-		while(this.usedAssets.length > 0 && this.frustum.intersectsObject( this.usedAssets[0].asset)){
-			console.log("remove")
-			this.unusedAssets.push(this.unusedAssets[0])
-			this.usedAssets.splice(0, 1)
-		}
-	}
 }
 
+export class vectorRoad{
+	/*
+		the vectorRoad class implements the road by extruding a 2d shape along the path of the road.
+		this is good for performance and more visually appealing than the leapfrog method.
+		The leapfrog method is still used for the center stripe, however.
+	*/
+	road_width = 7
+	barrier_width = 0.5
+	barrier_height = 0.75
+	stripe_width = 0.5
+	stripe_distance = 0.
 
+	constructor(scene, path, car){
+		var curve = new THREE.CatmullRomCurve3(path, true)
+		var road_walls = [];
+		road_walls.push( new THREE.Vector2( 2, this.road_width ) );
+		road_walls.push( new THREE.Vector2( -this.barrier_height, this.road_width ) );
+		road_walls.push( new THREE.Vector2( -this.barrier_height, (this.road_width + this.barrier_width) ) );
+		road_walls.push( new THREE.Vector2( 2, (this.road_width + this.barrier_width) ) );
+		road_walls.push( new THREE.Vector2( 2, -(this.road_width + this.barrier_width) ) );
+		road_walls.push( new THREE.Vector2( -this.barrier_height, -(this.road_width + this.barrier_width) ) );
+		road_walls.push( new THREE.Vector2( -this.barrier_height, -this.road_width ) );
+		road_walls.push( new THREE.Vector2( 2, -this.road_width ) );
+
+		var road_floor = [];
+		road_floor.push( new THREE.Vector2( 2, this.road_width ) );
+		road_floor.push( new THREE.Vector2( -0.1, this.road_width ) );
+		road_floor.push( new THREE.Vector2( -0.1, -this.road_width ) );
+		road_floor.push( new THREE.Vector2( 2, -this.road_width ) );
+
+		var road_highlight = []
+		road_walls.forEach((elem, i) => {
+			road_highlight.push(new THREE.Vector2(elem.x * 0.2, elem.y * 0.95))
+		})
+
+		var extrudeSettings = {
+			steps: 100,
+			bevelEnabled: false,
+			extrudePath: curve
+		};
+
+
+		var walls_material = new THREE.MeshLambertMaterial( { color: 0x333333, wireframe: false } );
+		var walls_shape = new THREE.Shape( road_walls );
+		var walls_geometry = new THREE.ExtrudeBufferGeometry( walls_shape, extrudeSettings );
+		var walls_mesh = new THREE.Mesh( walls_geometry, walls_material );
+
+		var floor_material = new THREE.MeshPhongMaterial( { color: 0x111111, wireframe: false } );
+		var floor_shape = new THREE.Shape( road_floor );
+		var floor_geometry = new THREE.ExtrudeBufferGeometry( floor_shape, extrudeSettings );
+		var floor_mesh = new THREE.Mesh( floor_geometry, floor_material );
+
+		var highlight_material = new THREE.MeshPhongMaterial( { color: 0x992255, wireframe: false } );
+		var highlight_shape = new THREE.Shape( road_highlight );
+		var highlight_geometry = new THREE.ExtrudeBufferGeometry( highlight_shape, extrudeSettings );
+		var highlight_mesh = new THREE.Mesh( highlight_geometry, highlight_material );
+
+		scene.add( walls_mesh );
+		scene.add( floor_mesh );
+		scene.add( highlight_mesh );
+
+		//create a leapfrogger for the yellow center stripe
+		var stripe_material = new THREE.MeshLambertMaterial( { color: 0x774400, wireframe: false } );
+		var stripe_geometry = new THREE.BoxGeometry(.5, .3, 2);
+		var stripe_mesh = new THREE.Mesh( stripe_geometry, stripe_material );
+		var meshes = []
+		for (var i = 0; i < 40; i++){
+			meshes.unshift({
+				"model": stripe_mesh.clone(),
+				"width": 4})
+			scene.add(meshes[0].model)
+		}
+		this.leapFrogger = new leapFrogger(path, meshes, car)
+	}
+	update(){
+		this.leapFrogger.update()
+	}
+
+}
 
 export function testRoad(loader, scene, car){
 	var path = [
@@ -184,10 +237,5 @@ export function testRoad(loader, scene, car){
 		(new THREE.Vector3(-20, 0, 100)),
 		(new THREE.Vector3(-50, 0, 40)),
 	]
-	return new road(path, loader, scene, car)
-}
-
-function setVec(v1, v2){
-	//it's insane that this isn't built in
-	v1.set(v2.x, v2.y, v2.z)
+	return new vectorRoad(scene, path, car)
 }
