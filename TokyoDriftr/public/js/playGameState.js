@@ -1,6 +1,8 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
+import { FlyControls } from 'https://unpkg.com/three/examples/jsm/controls/FlyControls.js'
 import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
+import { GUI } from 'https://unpkg.com/three/examples/jsm/libs/dat.gui.module.js';
 import {keyboardControls} from '/js/controller.js';
 import * as CARS from '/js/cars.js';
 import * as GAME_CONTROL from '/js/game_control.js';
@@ -12,15 +14,21 @@ import { gameState } from '/js/gameState.js';
 export class playGameState extends gameState{
     constructor(renderer,scene,manager) {
         super(manager)
-
+        this.options = {
+            hit_boxes: false,
+            freecam: false
+        }
         this.objects = {}
         this.camcontrols
+        this.flycontrols
         this.renderer = renderer
         //Pointer to the canvas
         this.canvas = this.renderer.domElement
         this.scene = scene
+        this.clock = new THREE.Clock();
         this.scene.background = new THREE.Color('#000000');
         this.keyControls=new keyboardControls()
+        this.gui = new GUI()
     }
 
     //Setups up initial scene for playGameState
@@ -40,7 +48,14 @@ export class playGameState extends gameState{
         this.camcontrols = new OrbitControls(this.objects["camera"], this.canvas);
         this.camcontrols.target.set(0, 0, 0);
         this.camcontrols.update();
+        this.camcontrols.enabled = false;
         globalThis.controls = this.camcontrols
+        //set up fly controls
+        this.flycontrols = new FlyControls( this.objects["camera"], this.canvas);
+        this.flycontrols.rollSpeed = .5;
+        this.flycontrols.dragToLook = true;
+        this.flycontrols.enabled = true;
+        this.flycontrols.update();
 
         //Initiate physics world
         PHYSICS_WORLD.initPhysicsWorld();
@@ -89,7 +104,7 @@ export class playGameState extends gameState{
         //add car, car controler, and road
         {
             const gltfLoader = new GLTFLoader();
-            this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, this.keyControls)
+            this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, this.keyControls, this.gui)
             globalThis.rx7 = this.objects['rx7']
             setTimeout(() => {
                 this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene, this.objects['rx7'])
@@ -120,6 +135,17 @@ export class playGameState extends gameState{
                 this.scene.add(b.hitbox);
             });
         }, 2000)
+
+        var hitboxes = this.gui.add(this.options, 'hit_boxes')
+        hitboxes.onChange(PHYSICS_WORLD.toggleHitboxes)
+        var freecam = this.gui.add(this.options, 'freecam')
+        freecam.onChange(() => {
+            this.changeCam(this)
+        })
+
+        this.gui.open()
+        
+
         this.Draw()
     }
 
@@ -130,27 +156,33 @@ export class playGameState extends gameState{
     
     Update() {
         var y_axis = new THREE.Vector3( 0, 1, 0 );
-        this.objects['rx7'].update()
         PHYSICS_WORLD.physicsTick()
         this.objects['testRoad'].update()
-        //Camera update
-        const camera_distance = 25
 
-        //Generate cam pos based 
-        //controls.target.set(rx7.gltf.scene.position.x, rx7.gltf.scene.position.y + 2, rx7.gltf.scene.position.z)
-        var cameraPos = new THREE.Vector3()
-        //calc distance from car
-        cameraPos.set(0, 8, camera_distance)
-        //rotate to the opposite of velocity vector
-        var velocity = PHYSICS_WORLD.getVelocity("rx7")
-        var correctedangle = (Math.sqrt(velocity.x*velocity.x + velocity.z*velocity.z) > 10) ? new THREE.Vector2(velocity.z, velocity.x) : new THREE.Vector2(Math.cos(this.objects['rx7'].gltf.scene.rotation.y), Math.sin(this.objects['rx7'].gltf.scene.rotation.y))
-        cameraPos.applyAxisAngle(y_axis, correctedangle.angle() + Math.PI)
-        //add the position
-        cameraPos.add(rx7.gltf.scene.position)
-        this.objects['camera'].position.set(cameraPos.x, cameraPos.y, cameraPos.z)
+        if(!this.options.freecam) {
+            this.objects['rx7'].update()
 
-        this.camcontrols.target.set(this.objects['rx7'].gltf.scene.position.x, this.objects['rx7'].gltf.scene.position.y, this.objects['rx7'].gltf.scene.position.z)
-        this.camcontrols.update()
+
+            //Camera update
+            const camera_distance = 25
+            //Generate cam pos based 
+            var cameraPos = new THREE.Vector3()
+            //calc distance from car
+            cameraPos.set(0, 8, camera_distance)
+            //rotate to the opposite of velocity vector
+            var velocity = PHYSICS_WORLD.getVelocity("rx7")
+            var correctedangle = (Math.sqrt(velocity.x*velocity.x + velocity.z*velocity.z) > 10) ? new THREE.Vector2(velocity.z, velocity.x) : new THREE.Vector2(Math.cos(this.objects['rx7'].gltf.scene.rotation.y), Math.sin(this.objects['rx7'].gltf.scene.rotation.y))
+            cameraPos.applyAxisAngle(y_axis, correctedangle.angle() + Math.PI)
+            //add the position
+            cameraPos.add(rx7.gltf.scene.position)
+            this.objects['camera'].position.set(cameraPos.x, cameraPos.y, cameraPos.z)
+
+            this.camcontrols.target.set(this.objects['rx7'].gltf.scene.position.x, this.objects['rx7'].gltf.scene.position.y, this.objects['rx7'].gltf.scene.position.z)
+            this.camcontrols.update()
+        }
+        else {
+            this.flycontrols.update(this.clock.getDelta())
+        }
     }
     Leaving() {
         function clearThree(obj){
@@ -173,5 +205,17 @@ export class playGameState extends gameState{
             return 1
         }   
         clearThree(this.scene)
+    }
+    changeCam(self) {
+        
+        if(self.options.freecam){
+            self.flycontrols.movementSpeed = 20;
+            self.objects['camera'].position.x = this.objects['rx7'].gltf.scene.position.x;
+            self.objects['camera'].position.y = this.objects['rx7'].gltf.scene.position.y;
+            self.objects['camera'].position.z = this.objects['rx7'].gltf.scene.position.z+5;
+            self.objects['camera'].updateProjectionMatrix();
+        }
+        else {
+        }
     }
 }

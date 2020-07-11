@@ -1,4 +1,3 @@
-import * as PHYSICS_WORLD from "/js/physicsWorld.js";
 
 export class keyboardControls{
 	constructor(){
@@ -32,8 +31,6 @@ export class keyboardControls{
 				self.brake = true
 			} else if (key == "1") {
 				self.one=true
-			} else if (key == "t") {
-				PHYSICS_WORLD.toggleHitboxes()
 			}
 		}function onDocumentKeyUp(event) {
 			//console.log("WHOOP!", event.key)

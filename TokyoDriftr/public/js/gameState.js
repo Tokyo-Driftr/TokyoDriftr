@@ -15,11 +15,3 @@ export class gameState {
 
     }
 }
-export class menuGameState extends gameState{
-    Update() {
-
-    }
-    Draw() {
-        
-    }
-}
