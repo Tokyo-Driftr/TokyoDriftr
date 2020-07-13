@@ -7,6 +7,10 @@ export class keyboardControls{
 		this.turning = false
 
 		this.one = false
+		this.two = false
+		this.three = false
+		this.change = false
+
 		this.left = false
 		this.right = false
 
@@ -31,6 +35,12 @@ export class keyboardControls{
 				self.brake = true
 			} else if (key == "1") {
 				self.one=true
+			} else if (key == "2") {
+				self.two=true
+			} else if (key == "3") {
+				self.three=true
+			} else if (key == "4") {
+				self.change=true
 			}
 		}function onDocumentKeyUp(event) {
 			//console.log("WHOOP!", event.key)
@@ -49,6 +59,12 @@ export class keyboardControls{
 				self.brake = false
 			} else if (key == "1") {
 				self.one=false
+			} else if (key == "2") {
+				self.two=false
+			} else if (key == "3") {
+				self.three=false
+			} else if (key == "4") {
+				self.change=false
 			}
 		}
 	}

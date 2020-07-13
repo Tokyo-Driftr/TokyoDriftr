@@ -10,25 +10,19 @@ import { playGameState } from '/js/playGameState.js';
 
 
 export class menuGameState extends gameState{
-    //this.scene
-    //this.renderer
-    //this.canvas
-    //this.camcontrols
-    //this.objects = {}
-    constructor(renderer,scene,manager) {
+    constructor(renderer,scene,manager,data) {
         super(manager)
 
         this.objects = {}
         this.camcontrols
         this.renderer = renderer
-        //Pointer to the canvas
         this.canvas = this.renderer.domElement
         this.scene = scene
         this.keyControls=new keyboardControls()
         this.changing = false
     }
-    Entered() {
-        //set up camera
+    async Entered() {
+        //Set up the camera
         const fov = 45;
         const aspect = this.canvas.width/this.canvas.height;  // the canvas default
         const near = 0.1;
@@ -39,7 +33,6 @@ export class menuGameState extends gameState{
         globalThis.camera = this.objects["camera"]
 
         //set up orbit controls
-        
         this.camcontrols = new OrbitControls(this.objects["camera"], this.canvas);
         this.camcontrols.target.set(0, 0, 0);
         this.camcontrols.update();
@@ -66,9 +59,9 @@ export class menuGameState extends gameState{
             this.scene.add(this.objects['light'].target);
         }
 
-        //set up text
+        //set up menu text
         var loader = new THREE.FontLoader();
-        loader.load( 'js/font.json', ( font ) => {
+        await loader.load( 'js/font.json', ( font ) => {
             var textGeo = new THREE.TextGeometry( 'W-Accelerate\nA/D-Left/Right\nHold Space-Drift\nPress 1 2 or 3 \nto choose car', {
               font: font,
               size: 1,
@@ -94,13 +87,16 @@ export class menuGameState extends gameState{
     Draw() {
         this.manager.draw()
     }
+    //Update() watches for any keystrokes and updates any moving objects
     Update() {
         this.camcontrols.update()
         if(this.keyControls.one && !this.changing) {
-            this.manager.setState(new playGameState(this.renderer, this.scene, this.manager))
+            this.manager.setState(new playGameState(this.renderer, this.scene, this.manager, {}))
             this.changing = true
         }
     }
+    //Leaving() clears all objects, gemoetry, and materials on the scene when changing to another scene
+    //Leaving() is async so that when objects are being deleted it doesn't start deleting objects in the new scene
     async Leaving() {
         function clearThree(obj){
             while(obj.children.length > 0){ 
