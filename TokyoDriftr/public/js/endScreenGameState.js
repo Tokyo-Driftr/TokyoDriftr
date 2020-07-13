@@ -46,7 +46,6 @@ export class endScreenGameState extends gameState{
         this.scene.add( this.objects['mesh']  );
 
         var newtime = {time: this.playerTime, course: 3, name:"Name"}
-        console.log(JSON.stringify(newtime))
         await fetch('http://localhost:8080/newtime', {
             headers: {
                 'Accept': 'application/json',
@@ -61,13 +60,13 @@ export class endScreenGameState extends gameState{
         })
         .then(response => response.json())
         .then(data => {
-            console.log(data)
             return data;
         })
         .catch((error) => {
             console.error('Error:', error);
         });
-        if(typeof times != 'undefined' && times instanceof Array){
+
+        if(typeof times == 'undefined' && !(times instanceof Array)){
             var best = 99999
             var i = 0
         }
@@ -94,10 +93,6 @@ export class endScreenGameState extends gameState{
             bevelSize : 0.2,
             bevelSegments: 10,
         };
-
-        var fonts = [
-            "Black",
-        ];
 
 
         this.controller = () => {
@@ -126,18 +121,7 @@ export class endScreenGameState extends gameState{
                 this.objects['mesh'].geometry.dispose();
                 this.objects['mesh'].geometry = geometry;
                 this.objects['mesh'].position.set(0,0,0)
-                //var box = new THREE.BoxHelper( this.objects['mesh'], 0xff0000 );
-                
-                //this.scene.add( box );
             })
-        /*var gui = new dat.GUI();
-        var folder = gui.addFolder( 'Text' );
-            folder.add( data, 'text' ).onChange( generateGeometry );
-            folder.add( data, 'size', 1, 30 ).onChange( generateGeometry );
-            folder.add( data, 'height', 0, 20 ).onChange( generateGeometry );
-            folder.addColor( controller, 'textColor').onChange( function() { valuer=mesh.material.color.set(controller.textColor);
-              
-            });*/
 
         this.Draw()
     }

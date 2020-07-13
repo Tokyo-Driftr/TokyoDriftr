@@ -107,7 +107,12 @@ export class playGameState extends gameState{
         //add car, car controler, and road
         {
             const gltfLoader = new GLTFLoader();
-            this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, this.keyControls, this.gui)
+            if(this.choice == 1)
+                this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, this.keyControls, this.gui)
+            else if(this.choice == 2)
+                this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, this.keyControls, this.gui)
+            else if(this.choice == 3)
+                this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, this.keyControls, this.gui)
             globalThis.rx7 = this.objects['rx7']
             setTimeout(() => {
                 this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene, this.objects['rx7'])
@@ -161,7 +166,7 @@ export class playGameState extends gameState{
     Update() {
         var y_axis = new THREE.Vector3( 0, 1, 0 );
         PHYSICS_WORLD.physicsTick()
-        
+
         this.objects['testRoad'].update()
 
         if(!this.options.freecam) {

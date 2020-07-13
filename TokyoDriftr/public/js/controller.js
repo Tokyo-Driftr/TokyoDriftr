@@ -6,13 +6,13 @@ export class keyboardControls{
 		this.brake = false
 		this.turning = false
 
-		this.one = false
-		this.two = false
-		this.three = false
+		this.choice = false
 		this.change = false
 
 		this.left = false
 		this.right = false
+
+		this.num = 0
 
 		this.turnDirection = 0 //float. 1=left, -1=right.
 		document.addEventListener("keydown", onDocumentKeyDown, false);
@@ -34,11 +34,14 @@ export class keyboardControls{
 			} else if (key == "s" || key == "ArrowDown" || key == " ") {
 				self.brake = true
 			} else if (key == "1") {
-				self.one=true
+				self.choice = true
+				self.num = 1
 			} else if (key == "2") {
-				self.two=true
+				self.choice = true
+				self.num = 2
 			} else if (key == "3") {
-				self.three=true
+				self.choice = true
+				self.num = 3
 			} else if (key == "4") {
 				self.change=true
 			}
@@ -57,12 +60,8 @@ export class keyboardControls{
 				self.checkTurn()
 			} else if (key == "s" || key == "ArrowDown" || key == " ") {
 				self.brake = false
-			} else if (key == "1") {
-				self.one=false
-			} else if (key == "2") {
-				self.two=false
-			} else if (key == "3") {
-				self.three=false
+			} else if (key == "1" || key == "2" || key == "2") {
+				self.choice = false
 			} else if (key == "4") {
 				self.change=false
 			}
