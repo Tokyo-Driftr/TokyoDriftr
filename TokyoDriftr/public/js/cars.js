@@ -29,17 +29,45 @@ class base_car{
             function ( gltf ) {
                 self.gltf = gltf
                 scene.add( gltf.scene );
+
+                //Car body
                 var collisionBody = {
                     type:'box', // type of shape : sphere, box, cylinder 
-                    size:[5,2,5], // size of shape
-                    pos:[0, 2, 0], // start position in degree
+                    size:[2.5,1.25,5], // size of shape
+                    pos:[0, 3, -1], // start position in degree
                     rot:[0,90,0], // start rotation in degree
                     move:true, // dynamic or statique
                     density: 10,
                     friction: 0.2,
-                    restitution: 0.2
+                    restitution: 0.2,
+                    belongsTo: 1,
+                    collidesWith: 0xffffffff
                 }
                 PHYSICS_WORLD.addBody(self.id, collisionBody, self.gltf.scene)
+
+                //Front wheel
+                var fwheelbody = {
+                    type:'box', // type of shape : sphere, box, cylinder 
+                    size:[2.5,1,5], // size of shape
+                    pos:[0, 3, -1], // start position in degree
+                    rot:[0,90,0], // start rotation in degree
+                    move:true, // dynamic or statique
+                    belongsTo: 1,
+                    collidesWith: 0x00000000
+                }
+                PHYSICS_WORLD.addBody(self.id.concat("fwheel"), fwheelbody, false)
+
+                //Back wheel
+                var bwheelbody = {
+                    type:'box', // type of shape : sphere, box, cylinder 
+                    size:[2.5,1,5], // size of shape
+                    pos:[0, 3, -1], // start position in degree
+                    rot:[0,90,0], // start rotation in degree
+                    move:true, // dynamic or statique
+                    belongsTo: 1,
+                    collidesWith: 0x00000000
+                }
+                PHYSICS_WORLD.addBody(self.id.concat("bwheel"), bwheelbody, false)
             },
             // called while loading is progressing
             function ( xhr ) {
@@ -52,75 +80,6 @@ class base_car{
             }
         );
     }
-
-    updateold(){
-        var car = this.gltf.scene
-        //drift
-        if(this.controller.brake && this.controller.accelerate){
-            if(!this.drifting && this.controller.turning){
-                //start drift
-                this.endingDrift = false
-                this.driftDirection = this.controller.turnDirection
-                this.drifting = true
-                //this.driftDeltaDirection.set(1,0)
-            }
-            //rotate car into drift
-            if(absangle(this.driftDeltaDirection) < this.maxDriftAngle) 
-                this.driftDeltaDirection.rotateAround(this.center, this.driftDirection * this.driftSpeed)
-            //put sparks and stuff after it's been drifting for a bit
-        }
-        else if(this.drifting){
-            this.endingDrift = true
-            this.drifting = false
-        }
-        if(this.endingDrift){
-            //end drift
-            if(absangle(this.driftDeltaDirection)*2 > this.driftSpeed){
-                this.endingDrift = true
-                console.log("ending drift. dd:", this.driftDeltaDirection.angle(), "td:", this.direction.angle())
-                //unrotate deltadirection
-                this.driftDeltaDirection.rotateAround(this.center, -1 * this.driftDirection * this.driftSpeed)
-                //rotate car direction
-                this.direction.rotateAround(this.center,  this.driftDirection * this.driftSpeed)
-            }else{
-                this.endingDrift = false
-                this.driftDeltaDirection.set(1,0)
-            }
-        }
-
-        //handle acceleration
-        if(this.controller.accelerate){
-            if (!this.drifting && this.velocity < this.max_speed) this.velocity += this.acceleration
-        }else if(this.controller.brake){
-            if (this.velocity != 0) this.velocity = Math.max(0, this.velocity - 3*this.acceleration)
-        }else{
-            //no input
-            if (this.velocity != 0) this.velocity = Math.max(0, this.velocity - 0.5*this.acceleration)
-        }
-
-        {
-            //calculate steering
-            var steering_angle = 0
-            if(this.drifting){
-                steering_angle = (this.driftDirection + this.controller.turnDirection) * 0.5 * (this.handling + this.driftHandling) * this.velocity
-            }
-            else{
-                steering_angle = this.controller.turnDirection * this.handling * this.velocity
-            }
-            this.direction.rotateAround(this.center, steering_angle)
-        }
-        //console.log(this.direction)
-        var delta_velocity = this.direction.clone()
-        delta_velocity.setLength(this.velocity)
-        
-        PHYSICS_WORLD.applyimpulse("rx7", {x: car.position.x, y: car.position.y, z: car.position.z}, {x: delta_velocity.y, y: 0, z: delta_velocity.x})
-        PHYSICS_WORLD.steer("rx7", this.direction.angle() + this.driftDeltaDirection.angle())
-
-        //car.rotation.y = this.direction.angle() + this.driftDeltaDirection.angle()
-        //car.position.x += delta_velocity.y
-        //car.position.z += delta_velocity.x
-    }
-
     update() {
         PHYSICS_WORLD.carPhysicsTick(this);
     }

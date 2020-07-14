@@ -18,21 +18,21 @@ export class keyboardControls{
 		function onDocumentKeyDown(event) {
 			//console.log("WHOOP!", event.key)
 			var key = event.key;
-			if (key == "w" || key == "ArrowUp") {
+			if (key == "w" || key == "W" || key == "ArrowUp") {
 				self.accelerate = true
-			} else if (key == "a" || key == "ArrowLeft") {
+			} else if (key == "a" || key == "A" || key == "ArrowLeft") {
 				self.turning = !self.turning
 				self.left = true
 				self.checkTurn()
-			} else if (key == "d" || key == "ArrowRight") {
+			} else if (key == "d" || key == "D" || key == "ArrowRight") {
 				self.turning = !self.turning
 				self.right = true
 				self.checkTurn()
-			} else if (key == "s" || key == "ArrowDown" || key == " ") {
+			} else if (key == "s" || key == "S" ||key == "ArrowDown" || key == " ") {
 				self.brake = true
 			} else if (key == "1") {
 				self.one=true
-			} else if (key == "t") {
+			} else if (key == "t" || key == "T") {
 				PHYSICS_WORLD.toggleHitboxes()
 			}
 		}function onDocumentKeyUp(event) {

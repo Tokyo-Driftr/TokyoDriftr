@@ -20,61 +20,80 @@ export class road_physics_stripe{
 		var stripe_geometry = new THREE.BoxGeometry(.5, .3, 2);
 		var stripe_mesh = new THREE.Mesh( stripe_geometry, stripe_material );
 		var meshes = []
+		var bodies = [] //Made of bodies {roadbody, lrail, rrail}
 		for (var i = 0; i < numAssets; i++){
 			var clone = stripe_mesh.clone()
+			var roadgroup = 1 << 1;
 			var roadBody = PHYSICS_WORLD.addBody(
-				"road".concat(clone.uuid), 
+				"road-".concat(clone.uuid), 
 				{
 					type: 'box',
-					size: [12, 1.1, 5],
-					pos: [0, 2, 0],
+					pos: [0, 0, 0],
+					size: [12, 2, 5],
 					rot: [0, 0, 0],
-					move: false,
-					density: 100,
-					friction: 1,
-					restitution: 1
-				}, 
-				scene
+					move: true,
+					density: 1,
+					friction: 0.2,
+					restitution: 1,
+					belongsTo: roadgroup,
+					collidesWith: 0xffffffff ^ roadgroup ^ 1
+				},
+				false
 			)
 			var lRailBody = PHYSICS_WORLD.addBody(
-				"lrail".concat(clone.uuid), 
+				"lrail-".concat(clone.uuid), 
 				{
 					type: 'box',
-					size: [1, 1, 1],
-					pos: [0, 0, 0],
+					size: [1, 4, 5],
+					pos: [1, 4, 5],
 					rot: [0, 0, 0],
-					move: false,
+					move: true,
 					density: 100,
 					friction: 1,
-					restitution: 1
+					restitution: 0.2,
+					belongsTo: roadgroup,
+					collidesWith: 0xffffffff ^ roadgroup
 				}, 
-				scene
+				false
 			)
 			var rRailBody = PHYSICS_WORLD.addBody(
-				"rrail".concat(clone.uuid), 
+				"rrail-".concat(clone.uuid), 
 				{
 					type: 'box',
-					size: [1, 1, 1],
-					pos: [0, 0, 0],
+					size: [1, 4, 5],
+					pos: [1, 4, 5],
 					rot: [0, 0, 0],
-					move: false,
+					move: true,
 					density: 100,
 					friction: 1,
-					restitution: 1
+					restitution: 0.2,
+					belongsTo: roadgroup,
+					collidesWith: 0xffffffff ^ roadgroup
 				}, 
-				scene
+				false
 			)
+			var roadBody
 			meshes.unshift({
 				"model": clone,
 				"width": 4,
 				"roadBody": roadBody,
-				"lRailBody": lRailBody,
-				"rRailBody": rRailBody,
+				"lrail": lRailBody,
+				"rrail": rRailBody,
 				"update": (data)=>{
-					console.log("update called")
-					data.roadBody.body.setPosition(data.model.position)
+					console.log(data)
 					data.roadBody.body.setQuaternion(data.model.quaternion)
-				}})
+					data.roadBody.body.setPosition({x: data.model.position.x, y: data.model.position.y - 0.5 + 0.01 * Math.random(), z: data.model.position.z})
+
+					var thetax = Math.cos(data.model.rotation.y)
+					var thetaz = Math.sin(data.model.rotation.y)
+
+					data.lrail.body.setQuaternion(data.model.quaternion)
+					data.lrail.body.setPosition({x: data.model.position.x + 7*thetax, y: data.model.position.y, z: data.model.position.z - 7*thetaz})
+
+					data.rrail.body.setQuaternion(data.model.quaternion)
+					data.rrail.body.setPosition({x: data.model.position.x - 7*thetax, y: data.model.position.y, z: data.model.position.z + 7*thetaz})
+				}
+			})
 			scene.add(clone)
 		}
 		this.leapFrogger = new leapFrogger(path, meshes, car)

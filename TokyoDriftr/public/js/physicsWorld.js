@@ -5,6 +5,13 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import * as OIMO from 'https://unpkg.com/oimo@1.0.9/build/oimo.module.js';
 
+
+/*
+Collision group bits:
+
+
+*/
+
 //World where physics calculations takes place
 export var physicsWorld;
 //Colission bodys in world; each element is a {id, collision body, mesh}
@@ -24,30 +31,34 @@ export function initPhysicsWorld() {
 	});
 }
 
-//Add a new body to bodys
+//Add a new body to list of bodies and returns object
 export function addBody(id, collisionData, mesh) {
     var newBody = physicsWorld.add(collisionData);
+    
+    
+    //Creates hitbox mesh
     var geometry = new THREE.BoxGeometry(collisionData.size[0], collisionData.size[1], collisionData.size[2]);
     var material = new THREE.MeshBasicMaterial( { color: 16777215*Math.random() } );
     var cube = new THREE.Mesh( geometry, material );
     cube.visible = false;
     cube.position.copy( newBody.getPosition() );
-    var newBody = {
+    
+    var body = {
         id: id, //string id for object
         body: newBody, //oimo collision object
         mesh: mesh, //corrosponding three mesh
         move: collisionData.move, //does the object move
         hitbox: cube//box representing hitbox
     };
-    bodys.push(newBody);
-    return newBody;
+    bodys.push(body);
+    return body;
 }
 
 //Performs necessary calculations to simulate driving a car
 export function carPhysicsTick(car) {
     var body = bodys.find(b => b.id == car.id);
-    //var fwheel = bodys.find(b => b.id == "fwheel");
-    //var bwheel = bodys.find(b => b.id == "bwheel");
+    var fwheel = bodys.find(b => b.id == car.id.concat("fwheel"));
+    var bwheel = bodys.find(b => b.id == car.id.concat("bwheel"));
     if (!body) return;
 
     //unit vector pointing towards velocity
@@ -70,7 +81,7 @@ export function carPhysicsTick(car) {
             //Brakes apply, car slows down
             body.body.applyImpulse(pos, scalarMul(vhat, car.handling*-10000))
         }
-        
+         
         //Rolling wheels make velcoity vector step towards direction vector
         var theta = Math.acos(dir.dot(vhat))
         var q = Math.max(Math.abs(theta)-car.handling*0.25, 0)
@@ -141,6 +152,7 @@ export function physicsTick() {
     });
 }
 
+//returns the linear velocity of a given body
 export function getVelocity(id) {
     var body = bodys.find(b => b.id == id);
     if (body) 
@@ -149,12 +161,18 @@ export function getVelocity(id) {
         return false
 }
 
+//Toggles if collision hitboxes are visble
 export function toggleHitboxes() {
     showHitBoxes = !showHitBoxes
     bodys.forEach(b => {
         //if (b.mesh) b.mesh.visible = !showHitBoxes
         b.hitbox.visible = showHitBoxes
     });
+}
+
+//returns body object from bodys by specified id
+export function getBody(bodyid) {
+    return bodys.find(b => b.id = bodyid)
 }
 
 //----
