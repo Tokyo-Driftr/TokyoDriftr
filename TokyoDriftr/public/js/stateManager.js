@@ -11,6 +11,7 @@ export class stateManager {
         this.currentState;
         this.renderer = renderer
         this.scene = scene
+        this.fadeOut = null
     }
     //Takes a new state as a parameter
     //Leaves the currentState
@@ -60,6 +61,12 @@ export class stateManager {
         
             this.currentState.renderer.render(this.currentState.scene, this.currentState.objects["camera"]);
             this.currentState.Update()
+            if(this.fadeOut != null) {
+                if(this.fadeOutMusic(this.fadeOut) <= 0) {
+                    this.fadeOut.stop()
+                    this.fadeOut = null
+                }
+            }
         };
         /*
         function frameArea(sizeToFitOnScreen, boxSize, boxCenter, camera) {
@@ -106,6 +113,12 @@ export class stateManager {
             if (dframe > 0) oldTime = Date.now();
             return dframe;
         }
+    }
+    fadeOutMusic(sound) {
+        var num = sound.getVolume()
+        num -= .01
+        sound.setVolume(num)
+        return num;
     }
     
 

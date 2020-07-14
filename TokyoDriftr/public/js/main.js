@@ -3,6 +3,7 @@ import { playGameState } from '/js/playGameState.js'
 import { menuGameState } from '/js/menuGameState.js'
 import { endScreenGameState } from '/js/endScreenGameState.js'
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import { soundEngine } from '/js/soundEngine.js';
 
 function main() {
   //Set up Renderer for the scene
@@ -15,8 +16,9 @@ function main() {
   scene.background = new THREE.Color('#000000');
 
   var state = new stateManager(renderer, scene)
+  var sound= new soundEngine()
   //change playGameState to menuGameState or viceversa depending on what you need to look at.
-  state.setState(new menuGameState(renderer, scene, state, {}))
+  state.setState(new menuGameState(renderer, scene, state, {soundEngine: sound}))
 }
 
 main();
