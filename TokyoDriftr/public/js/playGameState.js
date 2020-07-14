@@ -182,6 +182,7 @@ export class playGameState extends gameState{
     
     //Update() watches for any keystrokes and updates any moving objects
     Update() {
+        //Countdown implementation for starting the race.
         var num = (Date.now()-this.startTime)/1000
         if(num > this.count*2){
             switch(this.count){
@@ -203,6 +204,7 @@ export class playGameState extends gameState{
 
         this.objects['testRoad'].update()
 
+        //after countdown is done let the car move
         if(!this.options.freecam) {
             if(this.count==4)
                 this.objects['rx7'].update()
@@ -264,7 +266,7 @@ export class playGameState extends gameState{
         
     }
 
-
+    //For switching between freecam static camera for development features.
     changeCam(self) {
         
         if(self.options.freecam){
@@ -277,6 +279,7 @@ export class playGameState extends gameState{
         else {
         }
     }
+    //Creates textGeometry for countdown at the begginning of the race.
     countDown(num) {
         this.count++
         if(num!=3)
