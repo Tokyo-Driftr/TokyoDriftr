@@ -11,7 +11,7 @@ class base_car{
         driftSpeed: .01
     } 
     center = new THREE.Vector2(0,0)
-    constructor(scene, loader, controller, gui, modelName){
+    constructor(scene, loader, controller, gui, soundEngine, modelName){
         this.id = ""
         this.velocity = 0
         //orientation of car
@@ -64,7 +64,22 @@ class base_car{
         guiControls.add(this.options, 'driftHandling', 0, .2).listen()
         guiControls.add(this.options, 'maxDriftAngle', 0, 1).listen()
         guiControls.add(this.options, 'driftSpeed', 0, 1).listen()
-        guiControls.open()
+		guiControls.open()
+		
+		var sound = soundEngine.getNewSound()
+		console.log(this.sound)
+		var audioLoader = new THREE.AudioLoader();
+		audioLoader.load( 'res/accel.mp3', function( buffer ) {
+			console.log("play sound")
+			sound.setBuffer( buffer );
+			sound.setLoop( true );
+			sound.setVolume( 0.5 );
+			sound.setLoopStart(0.1)
+			sound.setLoopEnd(4)
+			sound.play();
+		});
+		this.sound = sound
+
     }
 
     updateold(){
@@ -136,13 +151,18 @@ class base_car{
     }
 
     update() {
-        PHYSICS_WORLD.carPhysicsTick(this);
+		PHYSICS_WORLD.carPhysicsTick(this);
+		var car_velocity = PHYSICS_WORLD.getVelocity(this.id).length()
+		var engine_pitch = car_velocity / 15 % 1.2 + car_velocity/50 + 0.9
+		this.sound.setPlaybackRate(engine_pitch)
+		//console.log(engine_pitch)
+		
     }
 }
 
 export class rx7 extends base_car{
-    constructor(scene, loader, controller, gui){
-        super(scene, loader, controller, gui, "rx7_3.glb")
+    constructor(scene, loader, controller, gui, soundEngine){
+        super(scene, loader, controller, gui, soundEngine, "rx7_3.glb")
         this.id = "rx7"
         this.options.max_speed = 45
         this.options.acceleration = 100
@@ -155,8 +175,8 @@ export class rx7 extends base_car{
 }
 
 export class ae86 extends base_car{
-    constructor(scene, loader, controller, gui){
-        super(scene, loader, controller, gui, "ae86.glb")
+    constructor(scene, loader, controller, gui, soundEngine){
+        super(scene, loader, controller, gui, soundEngine, "ae86.glb")
         this.id = "ae86"
         this.options.max_speed = 45
         this.options.acceleration = 100

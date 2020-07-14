@@ -11,6 +11,7 @@ import * as PHYSICS_WORLD from '/js/physicsWorld.js';
 import * as ROAD from '/js/road.js';
 import { gameState } from '/js/gameState.js';
 import { endScreenGameState } from '/js/endScreenGameState.js';
+import { soundEngine } from '/js/soundEngine.js';
 
 export class playGameState extends gameState{
     constructor(renderer,scene,manager,data) {
@@ -46,6 +47,7 @@ export class playGameState extends gameState{
         this.objects["camera"].position.set(10, 20, 5);
         globalThis.camera = this.objects["camera"]
         globalThis.three = THREE
+        this.objects["soundEngine"] = new soundEngine(this.objects["camera"])
 
         //set up orbit controls
         this.camcontrols = new OrbitControls(this.objects["camera"], this.canvas);
@@ -107,17 +109,18 @@ export class playGameState extends gameState{
         //add car, car controler, and road
         {
             const gltfLoader = new GLTFLoader();
-            if(this.choice == 1)
-                this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, this.keyControls, this.gui)
-            else if(this.choice == 2)
-                this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, this.keyControls, this.gui)
+            var car_class = CARS.rx7
+            if(this.choice == 2)
+                car_class = CARS.rx7
             else if(this.choice == 3)
-                this.objects['rx7'] = new CARS.rx7(this.scene, gltfLoader, this.keyControls, this.gui)
+                car_class = CARS.rx7
+                
+            this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui, this.objects.soundEngine)
             globalThis.rx7 = this.objects['rx7']
             setTimeout(() => {
                 this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene, this.objects['rx7'])
                 globalThis.road = this.objects['testRoad']
-            }, 100);
+            }, 200);
         }
         //Please remove eventually.  Collision box
         {
