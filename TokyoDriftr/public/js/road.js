@@ -220,6 +220,7 @@ export class vectorRoad{
 
 	constructor(path, scene, car){
 		var curve = new THREE.CatmullRomCurve3(path)
+		if(path[0].equals(path[path.length-1])) path.closed = true
 		var road_walls = [];
 		road_walls.push( new THREE.Vector2( 2, this.road_width ) );
 		road_walls.push( new THREE.Vector2( -this.barrier_height, this.road_width ) );
@@ -286,22 +287,24 @@ export class road{
 	}
 }
 
+function intersect_self(curve, maxSegDist){
+	if (curve.length < 4) return false
+	var latestPoint = curve[curve.length - 1]
+	for(var i = 0; i < curve.length - 2; i++){
+		var dist = (latestPoint.distanceTo(curve[i]))
+		if(dist < maxSegDist/2)
+			return true
+	}
+	return false
+}
+
 function gen2dpath(numPoints = 10, minSegDist = 10, maxSegDist = 50){
 	var path = [
 		(new THREE.Vector2(-20, 0)),
 		(new THREE.Vector2(35 , 0)),
 	]
 	
-	function intersect_self(curve){
-		if (curve.length < 4) return false
-		var latestPoint = curve[curve.length - 1]
-		for(var i = 0; i < curve.length - 2; i++){
-			var dist = (latestPoint.distanceTo(curve[i]))
-			if(dist < maxSegDist/2)
-				return true
-		}
-		return false
-	}
+	
 	var center = new THREE.Vector2(0,0)
 	for (var i = 0; i < numPoints; i++){
 		var distance = Math.round(Math.random() * maxSegDist + minSegDist)
@@ -309,7 +312,7 @@ function gen2dpath(numPoints = 10, minSegDist = 10, maxSegDist = 50){
 		angle.multiplyScalar(distance)
 		angle.add(path[path.length - 1])
 		path.push(angle)
-		if(intersect_self(path)){
+		if(intersect_self(path, maxSegDist)){
 			//console.log("INTERSECT")
 			i -= 1
 			path.pop()
@@ -320,6 +323,39 @@ function gen2dpath(numPoints = 10, minSegDist = 10, maxSegDist = 50){
 		path3d.push(new THREE.Vector3(path[i].x, 0, path[i].y))
 	}
 	return path3d
+}
+
+function gen2dloop(numPoints = 20, radius=100, random_radius=.4){
+	var path = [
+	]
+	var center = new THREE.Vector2(0,100)
+	for(var i = 0; i < numPoints+1; i++){
+		var path_pos = new THREE.Vector2(0,0)
+		path_pos.rotateAround(center, (i / numPoints) * 2 * Math.PI)
+		path.push(path_pos)
+		console.log(i)
+	}
+	
+	var maxSegDist = radius* 2 * Math.PI / numPoints
+	var new_path = []
+	path.forEach((elem, i) =>{
+		new_path.push(elem)
+	})
+	for(var i = 2; i < numPoints-1; i++){
+		var original_point = path[i]
+		for(var j = 0; j < 10; j++){
+			var new_point = original_point.clone()
+			new_point.rotateAround(path[i-1], randVal(random_radius))
+			new_path[i] = new_point
+			if(intersect_self(path)) new_path[i] = original_point
+		}
+	}
+	console.log(new_path)
+	for(var i = 0; i < numPoints+1; i++) path[i] = new THREE.Vector3(new_path[i].x, 0, new_path[i].y)
+	console.log(path)
+	path[path.length-1].copy(path[0])
+	return path
+
 }
 
 export function testRoad(loader, scene, car){
@@ -333,6 +369,10 @@ export function testRoad(loader, scene, car){
 		(new THREE.Vector3(-20, 0, 100)),
 		(new THREE.Vector3(-50, 0, 40)),
 	]
-	path = gen2dpath(20)
+	path = gen2dloop(20)
 	return new road(path, scene, car)
+}
+
+function randVal(mag){
+	return Math.random() * 2 * mag + mag
 }
