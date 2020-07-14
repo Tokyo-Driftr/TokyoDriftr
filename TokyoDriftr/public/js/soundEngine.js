@@ -1,7 +1,7 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
 export class soundEngine{
-    constructor(camera){
+    constructor(){
         this.listener = new THREE.AudioListener();
         //camera.add( this.listener );
     }

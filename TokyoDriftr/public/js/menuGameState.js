@@ -12,14 +12,26 @@ import { playGameState } from '/js/playGameState.js';
 export class menuGameState extends gameState{
     constructor(renderer,scene,manager,data) {
         super(manager)
-
-        this.objects = {}
+        
+        this.objects = {soundEngine: data.soundEngine}
         this.camcontrols
         this.renderer = renderer
         this.canvas = this.renderer.domElement
         this.scene = scene
         this.keyControls=new keyboardControls()
         this.changing = false
+
+        var sound = data.soundEngine.getNewSound()
+		var audioLoader = new THREE.AudioLoader();
+		audioLoader.load( 'res/tokyo2.wav', function( buffer ) {
+			console.log("play sound")
+			sound.setBuffer( buffer );
+			sound.setLoop( true );
+			sound.setVolume( 1 );
+			sound.setLoopStart(0)
+			sound.play();
+		});
+		this.music = sound
     }
     async Entered() {
         this.objects["camera"] = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
@@ -31,11 +43,23 @@ export class menuGameState extends gameState{
         globalThis.controls = this.camcontrols
 
 				this.objects['light'] = new THREE.SpotLight( 0xFFFFFF,1 );
-				this.objects['light'].position.set(100,100,100)
-				this.scene.add(this.objects['light'])
+				this.objects['light'].position.set(0,75,75)
+                this.scene.add(this.objects['light'])
+                //var spotLightHelper = new THREE.SpotLightHelper( this.objects['light'] );
+                //this.scene.add( spotLightHelper );
+                this.objects['light2'] = new THREE.SpotLight( 0xFF33E9,1.5 );
+                this.objects['light2'].position.set(-50,-25,50)
+                this.scene.add(this.objects['light2'])
+                //var spotLightHelper = new THREE.SpotLightHelper( this.objects['light2'] );
+                //this.scene.add( spotLightHelper );   
+                this.objects['light3'] = new THREE.SpotLight( 0x00FFFB,1.5 );
+                this.objects['light3'].position.set(50,-25,50)
+                this.scene.add(this.objects['light3'])
+                //var spotLightHelper = new THREE.SpotLightHelper( this.objects['light3'] );
+                //this.scene.add( spotLightHelper );
 
 
-        this.objects['mesh'] = new THREE.Mesh( new THREE.Geometry(), new THREE.MeshPhongMaterial( { color: 0x00fffc } ));
+        this.objects['mesh'] = new THREE.Mesh( new THREE.Geometry(), new THREE.MeshPhongMaterial( { color: 0x3FFAEF } ));
         this.scene.add( this.objects['mesh']  );
 
         var data = {
@@ -78,7 +102,7 @@ export class menuGameState extends gameState{
             this.objects['mesh'].position.set(0,1.5,0)
         })
         var gltfLoader = new GLTFLoader();
-        await gltfLoader.load(
+        gltfLoader.load(
             'res/rx7_3.glb',
             // called when the resource is loaded
             ( gltf ) => {
@@ -97,8 +121,8 @@ export class menuGameState extends gameState{
 
             }
         )
-        await gltfLoader.load(
-            'res/rx7_3.glb',
+        gltfLoader.load(
+            'res/ae86_2.glb',
             // called when the resource is loaded
             ( gltf ) => {
                 self.gltf = gltf
@@ -116,13 +140,34 @@ export class menuGameState extends gameState{
 
             }
         )
-        await gltfLoader.load(
+        gltfLoader.load(
             'res/rx7_3.glb',
             // called when the resource is loaded
             ( gltf ) => {
                 self.gltf = gltf
                 self.gltf.scene.scale.set(.5,.5,.5)
                 self.gltf.scene.position.set(2.5, -2, 0)
+                this.scene.add( gltf.scene );
+            },
+            // called while loading is progressing
+            function ( xhr ) {
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            },
+            // called when loading has errors
+            function ( error ) {
+                console.log( 'An error happened', error );
+
+            }
+        )
+        gltfLoader.load(
+            'res/street_scene.glb',
+            // called when the resource is loaded
+            ( gltf ) => {
+                self.gltf = gltf
+                self.gltf.scene.scale.set(.5,.5,.5)
+                self.gltf.scene.position.set(-1.3, -2, -8)
+                self.gltf.scene.rotation.set(0,.23,0)
+
                 this.scene.add( gltf.scene );
             },
             // called while loading is progressing
@@ -147,7 +192,8 @@ export class menuGameState extends gameState{
     Update() {
         //this.camcontrols.update()
         if(this.keyControls.choice && !this.changing) {
-            this.manager.setState(new playGameState(this.renderer, this.scene, this.manager, {choice: this.keyControls.num}))
+            this.manager.setState(new playGameState(this.renderer, this.scene, this.manager, 
+                {choice: this.keyControls.num, soundEngine: this.objects['soundEngine']}))
             this.changing = true
         }
     }
@@ -174,5 +220,6 @@ export class menuGameState extends gameState{
             return 1
         }   
         clearThree(this.scene)
+        this.manager.fadeOut = this.music
     }
 }

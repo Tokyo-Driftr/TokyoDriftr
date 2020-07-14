@@ -21,7 +21,7 @@ export class playGameState extends gameState{
             freecam: false
         }
         this.choice = data.choice
-        this.objects = {}
+        this.objects = {soundEngine: data.soundEngine}
         this.camcontrols
         this.flycontrols
         this.renderer = renderer
@@ -33,10 +33,23 @@ export class playGameState extends gameState{
         this.gui = new GUI()
         this.startTime = Date.now()
         this.changing = false
+
+        var sound = data.soundEngine.getNewSound()
+		var audioLoader = new THREE.AudioLoader();
+		audioLoader.load( 'res/tokyo1.wav', function( buffer ) {
+			console.log("play sound")
+			sound.setBuffer( buffer );
+			sound.setLoop( true );
+			sound.setVolume( .75 );
+			sound.setLoopStart(0)
+			sound.play();
+		});
+        this.music = sound
+        this.count = 0
     }
 
     //Setups up initial scene for playGameState
-    Entered() {
+    async Entered() {
         //set up camera
         const fov = 45;
         const aspect = this.canvas.width/this.canvas.height;  // the canvas default
@@ -47,7 +60,6 @@ export class playGameState extends gameState{
         this.objects["camera"].position.set(10, 20, 5);
         globalThis.camera = this.objects["camera"]
         globalThis.three = THREE
-        this.objects["soundEngine"] = new soundEngine(this.objects["camera"])
 
         //set up orbit controls
         this.camcontrols = new OrbitControls(this.objects["camera"], this.canvas);
@@ -64,6 +76,8 @@ export class playGameState extends gameState{
 
         //Initiate physics world
         PHYSICS_WORLD.initPhysicsWorld();
+
+        this.countDown(3);
         
 
         //set up global light
@@ -111,7 +125,7 @@ export class playGameState extends gameState{
             const gltfLoader = new GLTFLoader();
             var car_class = CARS.rx7
             if(this.choice == 2)
-                car_class = CARS.rx7
+                car_class = CARS.ae86
             else if(this.choice == 3)
                 car_class = CARS.rx7
                 
@@ -168,13 +182,30 @@ export class playGameState extends gameState{
     
     //Update() watches for any keystrokes and updates any moving objects
     Update() {
+        var num = (Date.now()-this.startTime)/1000
+        if(num > this.count*2){
+            switch(this.count){
+                case 1:
+                    this.countDown(2)
+                    break;
+                case 2:
+                    this.countDown(1)
+                    break;
+                case 3:
+                    this.countDown(0)
+                    break;
+            }
+        }
+        
+
         var y_axis = new THREE.Vector3( 0, 1, 0 );
         PHYSICS_WORLD.physicsTick()
 
         this.objects['testRoad'].update()
 
         if(!this.options.freecam) {
-            this.objects['rx7'].update()
+            if(this.count==4)
+                this.objects['rx7'].update()
 
 
             //Camera update
@@ -200,8 +231,9 @@ export class playGameState extends gameState{
         //if at the end of the race 
         if(this.keyControls.change && !this.changing){
             this.changing = true
-            var data = {time: Date.now()-this.startTime}
+            var data = {time: Date.now()-this.startTime, soundEngine: this.objects['soundEngine']}
             this.manager.setState(new endScreenGameState(this.renderer, this.scene, this.manager, data))
+            this.gui.close()
         }
     }
     //Leaving() clears all objects, gemoetry, and materials on the scene when changing to another scene
@@ -226,8 +258,13 @@ export class playGameState extends gameState{
             }
             return 1
         }   
+        this.objects['rx7'].sound.stop()
         clearThree(this.scene)
+        this.manager.fadeOut = this.music
+        
     }
+
+
     changeCam(self) {
         
         if(self.options.freecam){
@@ -238,6 +275,57 @@ export class playGameState extends gameState{
             self.objects['camera'].updateProjectionMatrix();
         }
         else {
+        }
+    }
+    countDown(num) {
+        this.count++
+        if(num!=3)
+            this.scene.remove(this.objects['countdown'])
+
+        if(num!=0) {
+            this.objects['countdown'] = new THREE.Mesh( new THREE.Geometry(), new THREE.MeshPhongMaterial( { color: 0x3FFAEF } ));
+            this.scene.add( this.objects['countdown']  );
+
+            var data = {
+                text : num.toString(),
+                size : 10,
+                height : .8,
+                curveSegments : 10,
+                font : "helvetiker",
+                weight : "Regular",
+                bevelEnabled : false,
+                bevelThickness : .5,
+                bevelSize : 0.2,
+                bevelSegments: 10,
+            };
+
+
+            this.controller = () => {
+                this.textColor = this.objects['countdown'].material.color.getHex();
+            }
+
+            var loader = new THREE.FontLoader();
+        
+            loader.load( 'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',  ( font ) => {
+                
+                var geometry = new THREE.TextGeometry( data.text, {
+                    font: font,
+                    size: data.size,
+                    height: data.height,
+                    curveSegments: data.curveSegments,
+                    bevelEnabled: data.bevelEnabled,
+                    bevelThickness: data.bevelThickness,
+                    bevelSize: data.bevelSize,
+                    bevelSegments: data.bevelSegments
+                } );
+
+                geometry.computeBoundingBox()
+                geometry.center();
+                this.objects['countdown'].geometry.dispose();
+                this.objects['countdown'].geometry = geometry;
+                this.objects['countdown'].position.set(-6,6,0)
+                this.objects['countdown'].rotation.set(0,-1.5708,0)
+            })
         }
     }
 }

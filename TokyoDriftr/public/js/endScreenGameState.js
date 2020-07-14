@@ -7,6 +7,7 @@ import * as GAME_CONTROL from '/js/game_control.js'
 import { stateManager } from '/js/stateManager.js'
 import { gameState } from '/js/gameState.js'
 import { playGameState } from '/js/playGameState.js';
+import { soundEngine } from '/js/soundEngine.js';
 
 String.prototype.toHHMMSS = function () {
     var sec_num = parseInt(this, 10); // don't forget the second param
@@ -24,7 +25,7 @@ export class endScreenGameState extends gameState{
     constructor(renderer,scene,manager,data) {
         super(manager)
 
-        this.objects = {}
+        this.objects = {soundEngine: data.soundEngine}
         this.camcontrols
         this.renderer = renderer
         this.canvas = this.renderer.domElement
@@ -32,6 +33,18 @@ export class endScreenGameState extends gameState{
         this.keyControls=new keyboardControls()
         this.changing = false
         this.playerTime = data.time/1000
+
+        var sound = data.soundEngine.getNewSound()
+		var audioLoader = new THREE.AudioLoader();
+		audioLoader.load( 'res/tokyo3.wav', function( buffer ) {
+			console.log("play sound")
+			sound.setBuffer( buffer );
+			sound.setLoop( true );
+			sound.setVolume( 1 );
+			sound.setLoopStart(0)
+			sound.play();
+		});
+		this.music = sound
     }
     async Entered() {
         this.objects["camera"] = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
@@ -75,6 +88,7 @@ export class endScreenGameState extends gameState{
 
             var t = times[0].time
             var i = 0
+            var closestTimes = []
             while(this.playerTime>t) {
                 t = times[i].time
                 i++

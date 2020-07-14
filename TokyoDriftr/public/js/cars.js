@@ -137,7 +137,7 @@ export class rx7 extends base_car{
 
 export class ae86 extends base_car{
     constructor(scene, loader, controller, gui, soundEngine){
-        super(scene, loader, controller, gui, soundEngine, "ae86.glb")
+        super(scene, loader, controller, gui, soundEngine, "ae86_2.glb")
         this.id = "ae86"
         this.options.max_speed = 45
         this.options.acceleration = 100
