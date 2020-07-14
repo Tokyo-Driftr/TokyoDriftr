@@ -12,6 +12,9 @@ export class stateManager {
         this.renderer = renderer
         this.scene = scene
     }
+    //Takes a new state as a parameter
+    //Leaves the currentState
+    //After Leaving currentState Enters the new state.
     setState(newState) {
         //this.currentState.Leaving()
         if(typeof this.currentState == 'undefined'){
@@ -25,11 +28,14 @@ export class stateManager {
             })
         }
     }
+    //returns the currentState
     getState() {
         return this.currentState;
     }
+    //draw() Renders the current scene and then calls the currentStates update
+    //draw() Keeps track of ticks for animations and timings
     draw() {
-        //Must be an arrow function or it loses context of 'this'
+        //Resizes the display when it is changed
         let resizeRendererToDisplaySize = (renderer) => {
             const canvas = renderer.domElement;
             const width = canvas.clientWidth;
@@ -41,12 +47,15 @@ export class stateManager {
             return needResize;
         };
         
-        //Render Loop must be arrow function or else it loses context of 'this'
+        //render() renders the current scene and calls the currentStates update
         let render = () => {
             if (resizeRendererToDisplaySize(this.currentState.renderer)) {
                 this.currentState.canvas = this.currentState.renderer.domElement;
-                this.currentState.objects["camera"].aspect = canvas.clientWidth / canvas.clientHeight;
+                this.currentState.objects["camera"].aspect = this.currentState.canvas.clientWidth / this.currentState.canvas.clientHeight;
                 this.currentState.objects["camera"].updateProjectionMatrix();
+                /*this.currentState.objects["camera"].right = canvas.width;
+                this.currentState.objects["camera"].bottom = canvas.height;
+                this.currentState.objects["camera"].updateProjectionMatrix();*/
             }
         
             this.currentState.renderer.render(this.currentState.scene, this.currentState.objects["camera"]);
@@ -84,7 +93,6 @@ export class stateManager {
         }, 200)
     
         var oldTime = Date.now();
-    
         var tick = function() {
             var dframe = getFramesPassed();
             render()

@@ -4,11 +4,16 @@ import * as PHYSICS_WORLD from '/js/physicsWorld.js';
 var cargroup = 1 << 2
 
 class base_car{
-    max_speed = 10
-    acceleration = .1
-    handling = .05 //radians turned per frame
+    options = {
+        max_speed: 45,
+        acceleration: 100,
+        handling: .04, //radians turned per frame
+        driftHandling: .05, // handling increase in the direction of the drift
+        maxDriftAngle: .3, //radians
+        driftSpeed: .01
+    } 
     center = new THREE.Vector2(0,0)
-    constructor(scene, loader, controller, modelName){
+    constructor(scene, loader, controller, gui, soundEngine, modelName){
         this.id = ""
         this.velocity = 0
         //orientation of car
@@ -39,7 +44,7 @@ class base_car{
                     pos:[0, 3, -1], // start position in degree
                     rot:[0,90,0], // start rotation in degree
                     move:true, // dynamic or statique
-                    density: 10,
+                    density: 15,
                     friction: 0.2,
                     restitution: 0.2,
                     belongsTo: cargroup,
@@ -81,37 +86,66 @@ class base_car{
 
             }
         );
+        this.gui = gui;
+        var guiControls = gui.addFolder("Car Controls")
+        guiControls.add(this.options, 'max_speed', 0, 70).listen()
+        guiControls.add(this.options, 'acceleration', 0, 1000).listen()
+        guiControls.add(this.options, 'handling', 0, .1).listen()
+        guiControls.add(this.options, 'driftHandling', 0, .2).listen()
+        guiControls.add(this.options, 'maxDriftAngle', 0, 1).listen()
+        guiControls.add(this.options, 'driftSpeed', 0, 1).listen()
+		guiControls.open()
+		
+		var sound = soundEngine.getNewSound()
+		console.log(this.sound)
+		var audioLoader = new THREE.AudioLoader();
+		audioLoader.load( 'res/accel.mp3', function( buffer ) {
+			console.log("play sound")
+			sound.setBuffer( buffer );
+			sound.setLoop( true );
+			sound.setVolume( 0.5 );
+			sound.setLoopStart(0.1)
+			sound.setLoopEnd(4)
+			sound.play();
+		});
+		this.sound = sound
+
     }
     update() {
-        PHYSICS_WORLD.carPhysicsTick(this);
+		PHYSICS_WORLD.carPhysicsTick(this);
+		var car_velocity = PHYSICS_WORLD.getVelocity(this.id).length()
+		var engine_pitch = car_velocity / 15 % 1.2 + car_velocity/50 + 0.9
+		this.sound.setPlaybackRate(engine_pitch)
+		//console.log(engine_pitch)
+		
     }
 }
 
 export class rx7 extends base_car{
-    constructor(scene, loader, controller){
-        super(scene, loader, controller, "rx7_3.glb")
+    constructor(scene, loader, controller, gui, soundEngine){
+        super(scene, loader, controller, gui, soundEngine, "rx7_3.glb")
         this.id = "rx7"
-        this.max_speed = 45
-        this.acceleration = 100
-        this.handling = .03
-        this.driftHandling = .05 // handling increase in the direction of the drift
+        this.options.max_speed = 45
+        this.options.acceleration = 100
+        this.options.handling = .03
+        this.options.driftHandling = .05 // handling increase in the direction of the drift
 
-        this.maxDriftAngle = .3 //radians
-        this.driftSpeed = .01 //rate that the car's orientation changes into and out of drifts
+        this.options.maxDriftAngle = .3 //radians
+        this.options.driftSpeed = .01 //rate that the car's orientation changes into and out of drifts
     }
 }
 
 export class ae86 extends base_car{
-    constructor(scene, loader, controller){
-        super(scene, loader, controller, "rx7_3.glb")
+    constructor(scene, loader, controller, gui, soundEngine){
+        super(scene, loader, controller, gui, soundEngine, "ae86.glb")
         this.id = "ae86"
-        this.max_speed = 45
-        this.acceleration = 100
-        this.handling = .02
-        this.driftHandling = .03 // handling increase in the direction of the drift
+        this.options.max_speed = 45
+        this.options.acceleration = 100
+        this.options.handling = .02
+        this.options.driftHandling = .03 // handling increase in the direction of the drift
 
-        this.maxDriftAngle = .7 //radians
-        this.driftSpeed = .03 //rate that the car's orientation changes into and out of drifts
+        this.options.maxDriftAngle = .7 //radians
+        this.options.driftSpeed = .03 //rate that the car's orientation changes into and out of drifts
     }
 }
 

@@ -86,12 +86,13 @@ export function carPhysicsTick(car) {
             //Do we want to handle anything here?
         } else {
             //Brakes apply, car slows down
-            body.body.applyImpulse(pos, scalarMul(vhat, car.handling*-10000))
+            
+            body.body.applyImpulse(pos, scalarMul(vhat, car.options.handling*-10000))
         }
          
         //Rolling wheels make velcoity vector step towards direction vector
         var theta = Math.acos(dir.dot(vhat))
-        var q = Math.max(Math.abs(theta)-car.handling*0.25, 0)
+        var q = Math.max(Math.abs(theta)-car.options.handling*0.25, 0)
         var w = Math.abs(q/theta)
         var temp = scalarMul(
             {x: w*vhat.x + (1-w)*dir.x, y: w*vhat.y + (1-w)*dir.y, z: w*vhat.z + (1-w)*dir.z}, 
@@ -102,7 +103,7 @@ export function carPhysicsTick(car) {
 
         //Turning applys angular velocity
         if (fwcontact && car.controller.turning) {
-            var theta = car.controller.turnDirection * car.driftHandling * (magnitude({x: body.body.linearVelocity.x, y:0, z: body.body.linearVelocity.z }))
+            var theta = car.controller.turnDirection * car.options.driftHandling * (magnitude({x: body.body.linearVelocity.x, y:0, z: body.body.linearVelocity.z }))
             if (!theta) theta = 0
             body.body.angularVelocity.y = theta;
             //body.body.angularVelocity.y = unsignedMin(theta, body.body.angularVelocity.y+0.01*car.controller.turnDirection)
@@ -111,18 +112,18 @@ export function carPhysicsTick(car) {
 
     } else { //wheels are not locked
         //Handles engine, impulse pointing towards front of car
-        if (bwcontact && car.controller.accelerate && Math.sqrt(body.body.linearVelocity.x*body.body.linearVelocity.x+body.body.linearVelocity.z*body.body.linearVelocity.z) < car.max_speed) {
-            body.body.applyImpulse(pos, scalarMul(dir, car.acceleration))
+        if (bwcontact && car.controller.accelerate && Math.sqrt(body.body.linearVelocity.x*body.body.linearVelocity.x+body.body.linearVelocity.z*body.body.linearVelocity.z) < car.options.max_speed) {
+            body.body.applyImpulse(pos, scalarMul(dir, car.options.acceleration))
         }
 
         //Turning applys angular velocity
         if (fwcontact && car.controller.turning) {
-            var theta = car.controller.turnDirection * car.handling * (magnitude({x: body.body.linearVelocity.x, y:0, z: body.body.linearVelocity.z }))
+            var theta = car.controller.turnDirection * car.options.handling * (magnitude({x: body.body.linearVelocity.x, y:0, z: body.body.linearVelocity.z }))
             if (!theta) theta = 0
             body.body.angularVelocity.y = theta;
             //body.body.angularVelocity.y = unsignedMin(theta, body.body.angularVelocity.y+0.1*car.controller.turnDirection)
         } else if (body.body.angularVelocity.y != 0) {
-        var newAngular = Math.max(Math.abs(body.body.angularVelocity.y) - car.handling*10, 0) * ((body.body.angularVelocity.y > 0 ) ? 1 : -1)
+        var newAngular = Math.max(Math.abs(body.body.angularVelocity.y) - car.options.handling*10, 0) * ((body.body.angularVelocity.y > 0 ) ? 1 : -1)
         if (newAngular) {
             body.body.angularVelocity.y = newAngular;
         }
@@ -131,7 +132,7 @@ export function carPhysicsTick(car) {
 
         //Rolling wheels make velcoity vector step towards direction vector
         var theta = Math.acos(dir.dot(vhat))
-        var q = Math.max(Math.abs(theta)-car.handling, 0)
+        var q = Math.max(Math.abs(theta)-car.options.handling, 0)
         var w = Math.abs(q/theta)
         var temp = scalarMul(
         {x: w*vhat.x + (1-w)*dir.x, y: w*vhat.y + (1-w)*dir.y, z: w*vhat.z + (1-w)*dir.z}, 
