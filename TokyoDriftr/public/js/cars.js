@@ -1,6 +1,8 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import * as PHYSICS_WORLD from '/js/physicsWorld.js';
 
+var cargroup = 1 << 2
+
 class base_car{
     max_speed = 10
     acceleration = .1
@@ -10,7 +12,7 @@ class base_car{
         this.id = ""
         this.velocity = 0
         //orientation of car
-        this.direction = new THREE.Vector3(0, 0, 1)
+        this.direction = new THREE.Vector3(-1, 0, 0)
         //delta of drift orientation vs regular orientation
         this.driftDeltaDirection = new THREE.Vector2(1,0)
         this.loader = loader
@@ -40,34 +42,34 @@ class base_car{
                     density: 10,
                     friction: 0.2,
                     restitution: 0.2,
-                    belongsTo: 1,
+                    belongsTo: cargroup,
                     collidesWith: 0xffffffff
                 }
-                PHYSICS_WORLD.addBody(self.id, collisionBody, self.gltf.scene)
+                PHYSICS_WORLD.addBody(self.id, collisionBody, self.gltf.scene, new THREE.Vector3(0, -0.75, 0))
 
                 //Front wheel
                 var fwheelbody = {
                     type:'box', // type of shape : sphere, box, cylinder 
-                    size:[2.5,1,5], // size of shape
-                    pos:[0, 3, -1], // start position in degree
+                    size:[2.5,1,1], // size of shape
+                    pos:[0, 0, 0], // start position in degree
                     rot:[0,90,0], // start rotation in degree
                     move:true, // dynamic or statique
-                    belongsTo: 1,
-                    collidesWith: 0x00000000
+                    belongsTo: cargroup,
+                    collidesWith: 0xffffffff ^ cargroup
                 }
-                PHYSICS_WORLD.addBody(self.id.concat("fwheel"), fwheelbody, false)
+                PHYSICS_WORLD.addBody(self.id.concat("fwheel"), fwheelbody, false, new THREE.Vector3(0, 0, 0))
 
                 //Back wheel
                 var bwheelbody = {
                     type:'box', // type of shape : sphere, box, cylinder 
-                    size:[2.5,1,5], // size of shape
-                    pos:[0, 3, -1], // start position in degree
+                    size:[2.5,1,1], // size of shape
+                    pos:[0, 0, 0], // start position in degree
                     rot:[0,90,0], // start rotation in degree
                     move:true, // dynamic or statique
-                    belongsTo: 1,
-                    collidesWith: 0x00000000
+                    belongsTo: cargroup,
+                    collidesWith: 0xffffffff ^ cargroup
                 }
-                PHYSICS_WORLD.addBody(self.id.concat("bwheel"), bwheelbody, false)
+                PHYSICS_WORLD.addBody(self.id.concat("bwheel"), bwheelbody, false, new THREE.Vector3(0, 0, 0))
             },
             // called while loading is progressing
             function ( xhr ) {

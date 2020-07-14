@@ -32,9 +32,8 @@ export function initPhysicsWorld() {
 }
 
 //Add a new body to list of bodies and returns object
-export function addBody(id, collisionData, mesh) {
+export function addBody(id, collisionData, mesh, meshoffset) {
     var newBody = physicsWorld.add(collisionData);
-    
     
     //Creates hitbox mesh
     var geometry = new THREE.BoxGeometry(collisionData.size[0], collisionData.size[1], collisionData.size[2]);
@@ -48,25 +47,33 @@ export function addBody(id, collisionData, mesh) {
         body: newBody, //oimo collision object
         mesh: mesh, //corrosponding three mesh
         move: collisionData.move, //does the object move
-        hitbox: cube//box representing hitbox
+        hitbox: cube, //box representing hitbox
+        offset: meshoffset
     };
     bodys.push(body);
     return body;
 }
 
+var lognum = 0;
 //Performs necessary calculations to simulate driving a car
 export function carPhysicsTick(car) {
     var body = bodys.find(b => b.id == car.id);
     var fwheel = bodys.find(b => b.id == car.id.concat("fwheel"));
     var bwheel = bodys.find(b => b.id == car.id.concat("bwheel"));
+    var plane = bodys.find(b => b.id == "plane")
     if (!body) return;
+
+    //Is the front and back wheels on the ground
+    var fwcontact = physicsWorld.getContact(fwheel.body, plane.body)
+    var bwcontact = physicsWorld.getContact(bwheel.body, plane.body)
+    var t = physicsWorld.getContact(body.body, plane.body)
+
+    //car position
+    var pos = body.body.getPosition();
 
     //unit vector pointing towards velocity
     var vhat = new THREE.Vector3(body.body.linearVelocity.x, body.body.linearVelocity.y, body.body.linearVelocity.z)
     vhat.normalize()
-
-    //car position
-    var pos = body.body.getPosition();
 
     //unit vecror pointing towards front of hood
     var dir = new THREE.Vector3(0, 0, 1)
@@ -74,7 +81,7 @@ export function carPhysicsTick(car) {
     dir.normalize()
 
     //wheels locked
-    if (car.controller.brake) {
+    if ((fwcontact || bwcontact) && car.controller.brake) {
         if (car.controller.accelerate) {
             //Do we want to handle anything here?
         } else {
@@ -94,7 +101,7 @@ export function carPhysicsTick(car) {
         body.body.linearVelocity.z = temp.z
 
         //Turning applys angular velocity
-        if (car.controller.turning) {
+        if (fwcontact && car.controller.turning) {
             var theta = car.controller.turnDirection * car.driftHandling * (magnitude({x: body.body.linearVelocity.x, y:0, z: body.body.linearVelocity.z }))
             if (!theta) theta = 0
             body.body.angularVelocity.y = theta;
@@ -104,12 +111,12 @@ export function carPhysicsTick(car) {
 
     } else { //wheels are not locked
         //Handles engine, impulse pointing towards front of car
-        if (car.controller.accelerate && Math.sqrt(body.body.linearVelocity.x*body.body.linearVelocity.x+body.body.linearVelocity.z*body.body.linearVelocity.z) < car.max_speed) {
+        if (bwcontact && car.controller.accelerate && Math.sqrt(body.body.linearVelocity.x*body.body.linearVelocity.x+body.body.linearVelocity.z*body.body.linearVelocity.z) < car.max_speed) {
             body.body.applyImpulse(pos, scalarMul(dir, car.acceleration))
         }
 
         //Turning applys angular velocity
-        if (car.controller.turning) {
+        if (fwcontact && car.controller.turning) {
             var theta = car.controller.turnDirection * car.handling * (magnitude({x: body.body.linearVelocity.x, y:0, z: body.body.linearVelocity.z }))
             if (!theta) theta = 0
             body.body.angularVelocity.y = theta;
@@ -136,6 +143,18 @@ export function carPhysicsTick(car) {
         //var stoppage = 1-Math.max(Math.abs(dir.dot(vhat)),0)
         //body.body.applyImpulse(pos, scalarMul(vhat, -100*stoppage))
     }
+
+    //Calculates where the wheels should be
+    var tempq = massageQuatToTHREE(body.body.getQuaternion())
+    var bodyq = new THREE.Quaternion(tempq._x, tempq._y, tempq._z, tempq._w)
+    var fpos = new THREE.Vector3(0, -0.75, 1.5)
+    var bpos = new THREE.Vector3(0, -0.75, -1.25)
+    fpos.applyQuaternion(bodyq);
+    bpos.applyQuaternion(bodyq);
+    fwheel.body.setQuaternion(body.body.getQuaternion())
+    fwheel.body.setPosition({x: pos.x + fpos.x, y: pos.y + fpos.y, z: pos.z + fpos.z})
+    bwheel.body.setQuaternion(body.body.getQuaternion())
+    bwheel.body.setPosition({x: pos.x + bpos.x, y: pos.y + bpos.y, z: pos.z + bpos.z})
 }
 
 //Runs a new physics calculation.  Should be called each tick
@@ -144,7 +163,10 @@ export function physicsTick() {
 
     bodys.forEach(b => {
         if (b.mesh != false && b.move) {
-            b.mesh.position.copy( b.body.getPosition() ); 
+            var posoffset = new THREE.Vector3(b.offset.x, b.offset.y, b.offset.z)
+            posoffset.applyQuaternion(b.body.getQuaternion())
+            var pos = b.body.getPosition()
+            b.mesh.position.copy( {x: pos.x + posoffset.x, y: pos.y + posoffset.y, z: pos.z + posoffset.z} ); 
             b.mesh.quaternion.copy( b.body.getQuaternion() );
         }
         b.hitbox.position.copy( b.body.getPosition() ); 

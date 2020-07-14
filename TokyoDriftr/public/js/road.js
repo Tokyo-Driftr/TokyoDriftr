@@ -24,6 +24,7 @@ export class road_physics_stripe{
 		for (var i = 0; i < numAssets; i++){
 			var clone = stripe_mesh.clone()
 			var roadgroup = 1 << 1;
+			var offset = new THREE.Vector3(0, 0, 0)
 			var roadBody = PHYSICS_WORLD.addBody(
 				"road-".concat(clone.uuid), 
 				{
@@ -31,14 +32,15 @@ export class road_physics_stripe{
 					pos: [0, 0, 0],
 					size: [12, 2, 5],
 					rot: [0, 0, 0],
-					move: true,
+					move: false,
 					density: 1,
 					friction: 0.2,
 					restitution: 1,
 					belongsTo: roadgroup,
-					collidesWith: 0xffffffff ^ roadgroup ^ 1
+					collidesWith: 0x00000000
 				},
-				false
+				false,
+				offset
 			)
 			var lRailBody = PHYSICS_WORLD.addBody(
 				"lrail-".concat(clone.uuid), 
@@ -49,12 +51,13 @@ export class road_physics_stripe{
 					rot: [0, 0, 0],
 					move: true,
 					density: 100,
-					friction: 1,
+					friction: 100,
 					restitution: 0.2,
 					belongsTo: roadgroup,
 					collidesWith: 0xffffffff ^ roadgroup
 				}, 
-				false
+				false,
+				offset
 			)
 			var rRailBody = PHYSICS_WORLD.addBody(
 				"rrail-".concat(clone.uuid), 
@@ -65,12 +68,13 @@ export class road_physics_stripe{
 					rot: [0, 0, 0],
 					move: true,
 					density: 100,
-					friction: 1,
+					friction: 100,
 					restitution: 0.2,
 					belongsTo: roadgroup,
 					collidesWith: 0xffffffff ^ roadgroup
 				}, 
-				false
+				false,
+				offset
 			)
 			var roadBody
 			meshes.unshift({
@@ -80,18 +84,19 @@ export class road_physics_stripe{
 				"lrail": lRailBody,
 				"rrail": rRailBody,
 				"update": (data)=>{
-					console.log(data)
-					data.roadBody.body.setQuaternion(data.model.quaternion)
-					data.roadBody.body.setPosition({x: data.model.position.x, y: data.model.position.y - 0.5 + 0.01 * Math.random(), z: data.model.position.z})
+					//Commented until roadbody is implemented
+					//data.roadBody.body.setQuaternion(data.model.quaternion)
+					//data.roadBody.body.setPosition({x: data.model.position.x, y: data.model.position.y - 0.5 + 0.01 * Math.random(), z: data.model.position.z})
+					data.roadBody.body.setPosition( { x: 2000, y: 0, z: 2000 } )
 
 					var thetax = Math.cos(data.model.rotation.y)
 					var thetaz = Math.sin(data.model.rotation.y)
 
 					data.lrail.body.setQuaternion(data.model.quaternion)
-					data.lrail.body.setPosition({x: data.model.position.x + 7*thetax, y: data.model.position.y, z: data.model.position.z - 7*thetaz})
+					data.lrail.body.setPosition({x: data.model.position.x + 7.5*thetax, y: data.model.position.y, z: data.model.position.z - 7.5*thetaz})
 
 					data.rrail.body.setQuaternion(data.model.quaternion)
-					data.rrail.body.setPosition({x: data.model.position.x - 7*thetax, y: data.model.position.y, z: data.model.position.z + 7*thetaz})
+					data.rrail.body.setPosition({x: data.model.position.x - 7.5*thetax, y: data.model.position.y, z: data.model.position.z + 7.5*thetaz})
 				}
 			})
 			scene.add(clone)

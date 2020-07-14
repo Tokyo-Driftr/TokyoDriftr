@@ -76,14 +76,14 @@ export class playGameState extends gameState{
             var collisionBody = {
                 type:'box', // type of shape : sphere, box, cylinder 
                 size:[2000,1,2000], // size of shape
-                pos:[0,-1.1,0], // start position in degree
+                pos:[0,0,0], // start position in degree
                 rot:[0,0,0], // start rotation in degree
                 move:false, // dynamic or statique
                 density: 100,
                 friction: 1,
                 restitution: 0.2
             }
-            PHYSICS_WORLD.addBody("plane", collisionBody, this.objects['plane'])
+            PHYSICS_WORLD.addBody("plane", collisionBody, this.objects['plane'], new THREE.Vector3(0, 0, 0))
         }
         //add car, car controler, and road
         {
@@ -110,9 +110,10 @@ export class playGameState extends gameState{
                 move:true, // dynamic or statique
                 density: 5,
                 friction: 0.2,
-                restitution: 0.2
+                restitution: 0.2,
+                belongsTo: 1 << 4,
             }
-            PHYSICS_WORLD.addBody("testcube", collisionBody, cube);
+            PHYSICS_WORLD.addBody("testcube", collisionBody, cube, new THREE.Vector3(0, 0, 0));
         }
         setTimeout(() => {
             PHYSICS_WORLD.bodys.forEach(b => {
