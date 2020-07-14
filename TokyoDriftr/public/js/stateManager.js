@@ -12,20 +12,26 @@ export class stateManager {
         this.renderer = renderer
         this.scene = scene
         this.fadeOut = null
+        this.ready = false
     }
     //Takes a new state as a parameter
     //Leaves the currentState
     //After Leaving currentState Enters the new state.
     setState(newState) {
         //this.currentState.Leaving()
+        this.ready =false
         if(typeof this.currentState == 'undefined'){
             this.currentState = newState;
             newState.Entered()
+            this.ready = true
         }
         else {
             this.currentState.Leaving().then(() => {
                 this.currentState = newState
-                newState.Entered()
+                newState.Entered().then(()=>{
+
+                    this.ready = true
+                })
             })
         }
     }
@@ -36,6 +42,7 @@ export class stateManager {
     //draw() Renders the current scene and then calls the currentStates update
     //draw() Keeps track of ticks for animations and timings
     draw() {
+        if (!this.ready) return
         //Resizes the display when it is changed
         let resizeRendererToDisplaySize = (renderer) => {
             const canvas = renderer.domElement;
