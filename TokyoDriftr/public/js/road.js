@@ -108,7 +108,10 @@ export class leapFrogger{
 
 		var point = this.curve.getPointAt(this.curvePosition)
 		var tangent = this.curve.getTangentAt(this.curvePosition)
-		var rotation = new THREE.Vector3( 0, Math.atan(tangent.x / tangent.z), 0 )
+		//var rotation = new THREE.Vector3( 0, Math.atan(tangent.x / tangent.z), 0 )
+		var rotation_ang = new THREE.Vector2(tangent.z, tangent.x).angle()
+		var rotation = new THREE.Vector3( 0, rotation_ang, 0 )
+		//console.log("rot", rotation)
 		this.curvePosition += width/this.curveLength
 		return {
 			position: point,
@@ -159,6 +162,7 @@ export class vectorRoad{
 	stripe_distance = 0.
 
 	constructor(scene, path, car){
+		this.car = car
 		var curve = new THREE.CatmullRomCurve3(path, true)
 		var road_walls = [];
 		road_walls.push( new THREE.Vector2( 2, this.road_width ) );
@@ -210,6 +214,9 @@ export class vectorRoad{
 		//create a leapfrogger for the yellow center stripe
 		var stripe_material = new THREE.MeshLambertMaterial( { color: 0x774400, wireframe: false } );
 		var stripe_geometry = new THREE.BoxGeometry(.5, .3, 2);
+		//var stripe_head =  new THREE.BoxGeometry(.5, .5, .5);
+		//stripe_head.translate(0,0,1)
+		//stripe_geometry.merge(stripe_head)
 		var stripe_mesh = new THREE.Mesh( stripe_geometry, stripe_material );
 		var meshes = []
 		for (var i = 0; i < 40; i++){
@@ -222,6 +229,8 @@ export class vectorRoad{
 	}
 	update(){
 		this.leapFrogger.update()
+		//collision
+		this.car.collide(this.leapFrogger.usedAssets[10], this.leapFrogger.usedAssets[12])
 	}
 
 }
@@ -238,4 +247,11 @@ export function testRoad(loader, scene, car){
 		(new THREE.Vector3(-50, 0, 40)),
 	]
 	return new vectorRoad(scene, path, car)
+}
+
+function actualangle(ang){
+	var pi = Math.pi
+	while (ang > 2*pi) ang -= 2*pi
+	while (ang < 0) ang += 2*pi
+	return ang
 }

@@ -4,7 +4,16 @@ class base_car{
 	acceleration = .1
 	handling = .05 //radians turned per frame
 	center = new THREE.Vector2(0,0)
+	width = 2
+	length = 4
+	collision_bounce = 0
+	road_center_target = null
+	y_axis = new THREE.Vector3(0,1,0)
 	constructor(scene, loader, controller, modelName){
+		var hitbox_material = new THREE.MeshLambertMaterial( { color: 0x004400, wireframe: true } );
+		var hitbox_geometry = new THREE.BoxGeometry(this.width, 4, this.length);
+		this.hitbox = new THREE.Mesh( hitbox_geometry, hitbox_material );
+		//scene.add(this.hitbox)
 		this.velocity = 0
 		//orientation of car
 		this.direction = new THREE.Vector2(0,1)
@@ -39,11 +48,54 @@ class base_car{
 		);
 
 	}
+	collide(collider, center){
+		//console.log("COLLIDE")
 
+		if (this.collision_bounce) return
+		//check collision
+		var collision = false
+		var temp = new THREE.Vector3()
+		this.hitbox.geometry.vertices.forEach((elem, i)=>{
+			temp.copy(elem)
+			temp.add(this.gltf.scene.position)
+			if(temp.distanceTo(collider.model.position) > 8) collision = true
+		})
+		if(this.controller.collide) console.log(temp, center.model.position)
+		if(!collision) return
+
+		this.collision_bounce = 25
+		if(this.drifting) this.endingDrift = true
+		this.road_center_target = center
+
+		this.collide_angle_dir = (this.direction.angle() - this.road_center_target.model.rotation.y) / 20
+	}
 	update(){
 		var car = this.gltf.scene
+		this.hitbox.position.copy(car.position)
+		this.hitbox.rotation.copy(car.rotation)
+
+		if(this.collision_bounce > 0){
+			this.collision_bounce--
+			var bounce_force = Math.sqrt(this.collision_bounce) / 20
+			var delta_pos = car.position.clone()
+			delta_pos.sub(this.road_center_target.model.position).normalize().multiplyScalar(bounce_force)
+
+			car.position.sub(delta_pos)
+
+			//get axis
+			var target_rotation = this.road_center_target.model.rotation.y
+			if(this.collision_bounce == 14) console.log("target", target_rotation, "this", this.direction.angle())
+			var delta_ang = this.road_center_target.model.rotation.y -this.direction.angle()
+			delta_ang = reduceAngle(delta_ang)
+			//this.direction.set(1,0)
+			this.direction.rotateAround(this.center, delta_ang/10)
+
+		}
+		else{
+
+		}
 		//drift
-		if(this.controller.brake && this.controller.accelerate){
+		if(this.controller.brake && this.controller.accelerate && !this.endingDrift){
 			if(!this.drifting && this.controller.turning){
 				//start drift
 				this.endingDrift = false
@@ -134,10 +186,33 @@ export class ae86 extends base_car{
 	}
 }
 
-function actualangle(vec){
-	var ang = vec.angle()
+function comp_angle(ang1, ang2){
+	a1 = new THREE.ve
+}
+function comp_angl2(ang1, ang2){
+	//returns -1 if ang1 is to the right of ang2, 1 else
+	if (ang1 < 0) ang1 += 2*Math.PI
+	if (ang2 < 0) ang2 += 2*Math.PI
+	var res = 0
+	if(ang1 < ang2) ang1 += 2*Math.PI
+	if (ang1 - ang2 < Math.PI) res = 1
+	else res = -1
+
+	console.log("comp", ang1, "and ", ang2, "res:", res)
+	return res
+}
+
+function actualangle(ang){
 	var pi = Math.pi
-	if (ang > pi) return ang - 2*pi
+	while (ang > 2*pi) ang -= 2*pi
+	while (ang < 0) ang += 2*pi
+	return ang
+}
+
+function reduceAngle(ang){
+	//map an angle to the range -pi - pi
+	while(ang < -Math.PI) ang += 2*Math.PI
+	while(ang > Math.PI) ang -= 2*Math.PI
 	return ang
 }
 

@@ -28,6 +28,9 @@ export class keyboardControls{
 			} else if (key == "s" || key == "ArrowDown" || key == " ") {
 				self.brake = true
 			}
+			else if (key == "c") {
+				self.collide = true
+			}
 		}function onDocumentKeyUp(event) {
 			//console.log("WHOOP!", event.key)
 			var key = event.key;
@@ -43,6 +46,9 @@ export class keyboardControls{
 				self.checkTurn()
 			} else if (key == "s" || key == "ArrowDown" || key == " ") {
 				self.brake = false
+			}
+			else if (key == "c") {
+				self.collide = false
 			}
 		}
 	}
