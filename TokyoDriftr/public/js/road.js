@@ -6,7 +6,6 @@ The road holds a list  of n total road assets and "leapfrogs" them from behind t
 */
 
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
-import * as PHYSICS_WORLD from "/js/physicsWorld.js";
 
 export class road_physics_stripe{
 	/*
@@ -14,7 +13,9 @@ export class road_physics_stripe{
 		Leapfrogger takes an optional function that can be called post-update, and this takes advantage
 		of that function in order to update its corresponding physics object
 	*/
-	constructor(path, scene, car, numAssets = 30){
+	constructor(path, scene, car, numAssets = 40){
+		this.car = car
+		this.lastPoint = path[path.length-1]
 		//create a model for the yellow center stripe and then add it to a leapfrogger
 		var stripe_material = new THREE.MeshLambertMaterial( { color: 0x774400, wireframe: false } );
 		var stripe_geometry = new THREE.BoxGeometry(.5, .3, 2);
@@ -25,79 +26,11 @@ export class road_physics_stripe{
 			var clone = stripe_mesh.clone()
 			var roadgroup = 1 << 1;
 			var offset = new THREE.Vector3(0, 0, 0)
-			var roadBody = PHYSICS_WORLD.addBody(
-				"road-".concat(clone.uuid), 
-				{
-					type: 'box',
-					pos: [0, 0, 0],
-					size: [12, 2, 5],
-					rot: [0, 0, 0],
-					move: false,
-					density: 1,
-					friction: 0.2,
-					restitution: 1,
-					belongsTo: roadgroup,
-					collidesWith: 0x00000000
-				},
-				false,
-				offset
-			)
-			var lRailBody = PHYSICS_WORLD.addBody(
-				"lrail-".concat(clone.uuid), 
-				{
-					type: 'box',
-					size: [1, 4, 3],
-					pos: [1, 4, 5],
-					rot: [0, 0, 0],
-					move: true,
-					density: 100,
-					friction: 100,
-					restitution: 0.2,
-					belongsTo: roadgroup,
-					collidesWith: 0xffffffff ^ roadgroup
-				}, 
-				false,
-				offset
-			)
-			var rRailBody = PHYSICS_WORLD.addBody(
-				"rrail-".concat(clone.uuid), 
-				{
-					type: 'box',
-					size: [1, 4, 3],
-					pos: [1, 4, 5],
-					rot: [0, 0, 0],
-					move: true,
-					density: 100,
-					friction: 100,
-					restitution: 0.2,
-					belongsTo: roadgroup,
-					collidesWith: 0xffffffff ^ roadgroup
-				}, 
-				false,
-				offset
-			)
+			
 			var roadBody
 			meshes.unshift({
 				"model": clone,
 				"width": 4,
-				"roadBody": roadBody,
-				"lrail": lRailBody,
-				"rrail": rRailBody,
-				"update": (data)=>{
-					//Commented until roadbody is implemented
-					//data.roadBody.body.setQuaternion(data.model.quaternion)
-					//data.roadBody.body.setPosition({x: data.model.position.x, y: data.model.position.y - 0.5 + 0.01 * Math.random(), z: data.model.position.z})
-					data.roadBody.body.setPosition( { x: 2000, y: 0, z: 2000 } )
-
-					var thetax = Math.cos(data.model.rotation.y)
-					var thetaz = Math.sin(data.model.rotation.y)
-
-					data.lrail.body.setQuaternion(data.model.quaternion)
-					data.lrail.body.setPosition({x: data.model.position.x + 7.5*thetax, y: data.model.position.y, z: data.model.position.z - 7.5*thetaz})
-
-					data.rrail.body.setQuaternion(data.model.quaternion)
-					data.rrail.body.setPosition({x: data.model.position.x - 7.5*thetax, y: data.model.position.y, z: data.model.position.z + 7.5*thetaz})
-				}
 			})
 			scene.add(clone)
 		}
@@ -105,6 +38,8 @@ export class road_physics_stripe{
 	}
 	update(){
 		this.leapFrogger.update()
+		this.car.collide(this.leapFrogger.usedAssets[10].model, this.leapFrogger.usedAssets[12])
+		if(!this.car.checkProximity(this.lastPoint, 8)) console.log("END")
 	}
 
 }
@@ -167,7 +102,8 @@ export class leapFrogger{
 		*/
 		var point = this.curve.getPointAt(this.curvePosition)
 		var tangent = this.curve.getTangentAt(this.curvePosition)
-		var rotation = new THREE.Vector3( 0, Math.atan(tangent.x / tangent.z), 0 )
+		var rotation_ang = new THREE.Vector2(tangent.z, tangent.x).angle()
+		var rotation = new THREE.Vector3( 0, rotation_ang, 0 )
 		this.curvePosition += width/this.curveLength
 		return {
 			position: point,
@@ -279,6 +215,7 @@ export class road{
 		road is the master class for the road, it controls all leapfrogging behavior and draws the road
 	*/
 	constructor(path, scene, car){
+		this.car = car
 		this.road_stripes = new road_physics_stripe(path, scene, car)
 		this.road_shape = new vectorRoad(path, scene, car)
 	}
@@ -298,7 +235,7 @@ function intersect_self(curve, maxSegDist){
 	return false
 }
 
-function gen2dpath(numPoints = 10, minSegDist = 10, maxSegDist = 50){
+function gen2dpath(numPoints = 10, minSegDist = 15, maxSegDist = 70){
 	var path = [
 		(new THREE.Vector2(-20, 0)),
 		(new THREE.Vector2(35 , 0)),
@@ -312,7 +249,7 @@ function gen2dpath(numPoints = 10, minSegDist = 10, maxSegDist = 50){
 		angle.multiplyScalar(distance)
 		angle.add(path[path.length - 1])
 		path.push(angle)
-		if(intersect_self(path, maxSegDist)){
+		if(intersect_self(path, maxSegDist + 10)){
 			//console.log("INTERSECT")
 			i -= 1
 			path.pop()
@@ -352,6 +289,7 @@ function gen2dloop(numPoints = 20, radius=100, random_radius=.4){
 	}
 	console.log(new_path)
 	for(var i = 0; i < numPoints+1; i++) path[i] = new THREE.Vector3(new_path[i].x, 0, new_path[i].y)
+	//for(var i = 0; i < 3; i++) path.unshift(path.pop())
 	console.log(path)
 	path[path.length-1].copy(path[0])
 	return path
@@ -369,7 +307,7 @@ export function testRoad(loader, scene, car){
 		(new THREE.Vector3(-20, 0, 100)),
 		(new THREE.Vector3(-50, 0, 40)),
 	]
-	path = gen2dloop(20)
+	path = gen2dpath(20)
 	return new road(path, scene, car)
 }
 

@@ -7,7 +7,6 @@ import {keyboardControls} from '/js/controller.js';
 import { CSS2DRenderer, CSS2DObject } from 'https://unpkg.com/three/examples/jsm/renderers/CSS2DRenderer.js';
 import * as CARS from '/js/cars.js';
 import * as GAME_CONTROL from '/js/game_control.js';
-import * as PHYSICS_WORLD from '/js/physicsWorld.js';
 import * as ROAD from '/js/road.js';
 import { gameState } from '/js/gameState.js';
 import { endScreenGameState } from '/js/endScreenGameState.js';
@@ -74,8 +73,6 @@ export class playGameState extends gameState{
         this.flycontrols.enabled = true;
         this.flycontrols.update();
 
-        //Initiate physics world
-        PHYSICS_WORLD.initPhysicsWorld();
 
         this.countDown(3);
         
@@ -118,7 +115,6 @@ export class playGameState extends gameState{
                 friction: 1,
                 restitution: 0.2
             }
-            PHYSICS_WORLD.addBody("plane", collisionBody, this.objects['plane'], new THREE.Vector3(0, 0, 0))
         }
         //add car, car controler, and road
         {
@@ -154,16 +150,8 @@ export class playGameState extends gameState{
                 restitution: 0.2,
                 belongsTo: 1 << 4,
             }
-            PHYSICS_WORLD.addBody("testcube", collisionBody, cube, new THREE.Vector3(0, 0, 0));
         }
-        setTimeout(() => {
-            PHYSICS_WORLD.bodys.forEach(b => {
-                this.scene.add(b.hitbox);
-            });
-        }, 2000)
 
-        var hitboxes = this.gui.add(this.options, 'hit_boxes')
-        hitboxes.onChange(PHYSICS_WORLD.toggleHitboxes)
         var freecam = this.gui.add(this.options, 'freecam')
         freecam.onChange(() => {
             this.changeCam(this)
@@ -171,8 +159,10 @@ export class playGameState extends gameState{
 
         this.gui.open()
         
-
-        this.Draw()
+        setTimeout(() => {
+            
+            this.Draw()
+        }, 500);
     }
 
     //Renders each frame
@@ -199,7 +189,6 @@ export class playGameState extends gameState{
         
 
         var y_axis = new THREE.Vector3( 0, 1, 0 );
-        PHYSICS_WORLD.physicsTick()
 
         this.objects['testRoad'].update()
 
@@ -207,17 +196,16 @@ export class playGameState extends gameState{
             if(this.count==4)
                 this.objects['rx7'].update()
 
-
             //Camera update
             const camera_distance = 25
+
             //Generate cam pos based 
+            //controls.target.set(rx7.gltf.scene.position.x, rx7.gltf.scene.position.y + 2, rx7.gltf.scene.position.z)
             var cameraPos = new THREE.Vector3()
             //calc distance from car
             cameraPos.set(0, 8, camera_distance)
             //rotate to the opposite of velocity vector
-            var velocity = PHYSICS_WORLD.getVelocity("rx7")
-            var correctedangle = (Math.sqrt(velocity.x*velocity.x + velocity.z*velocity.z) > 10) ? new THREE.Vector2(velocity.z, velocity.x) : new THREE.Vector2(Math.cos(this.objects['rx7'].gltf.scene.rotation.y), Math.sin(this.objects['rx7'].gltf.scene.rotation.y))
-            cameraPos.applyAxisAngle(y_axis, correctedangle.angle() + Math.PI)
+            cameraPos.applyAxisAngle(y_axis, rx7.dampedAngle.angle() + Math.PI)
             //add the position
             cameraPos.add(rx7.gltf.scene.position)
             this.objects['camera'].position.set(cameraPos.x, cameraPos.y, cameraPos.z)
