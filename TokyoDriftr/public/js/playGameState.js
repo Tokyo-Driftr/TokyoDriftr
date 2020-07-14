@@ -152,12 +152,12 @@ export class playGameState extends gameState{
             }
         }
 
-        var freecam = this.gui.add(this.options, 'freecam')
-        freecam.onChange(() => {
+        //var freecam = this.gui.add(this.options, 'freecam')
+        /*freecam.onChange(() => {
             this.changeCam(this)
-        })
+        })*/
 
-        this.gui.open()
+        //this.gui.open()
         
         setTimeout(() => {
             
@@ -223,7 +223,7 @@ export class playGameState extends gameState{
             this.changing = true
             var data = {time: Date.now()-this.startTime, soundEngine: this.objects['soundEngine']}
             this.manager.setState(new endScreenGameState(this.renderer, this.scene, this.manager, data))
-            this.gui.close()
+            //this.gui.close()
         }
     }
     //Leaving() clears all objects, gemoetry, and materials on the scene when changing to another scene
@@ -248,7 +248,7 @@ export class playGameState extends gameState{
             }
             return 1
         }   
-        this.objects['rx7'].sound.stop()
+        //this.objects['rx7'].sound.stop()
         clearThree(this.scene)
         this.manager.fadeOut = this.music
         
