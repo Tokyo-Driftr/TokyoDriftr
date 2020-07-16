@@ -49,36 +49,40 @@ class base_car{
 		);
 
 	}
-	checkProximity(object, distance){
-		//console.log(object)
+	proximity(targetPosition){
+		//finds the max distance from any vertex in the car's hitbox to the given vector3
 		var temp = new THREE.Vector3()
-		var rt = false
+		var max = 0
 		this.hitbox.geometry.vertices.forEach((elem, i)=>{
 			temp.copy(elem)
 			temp.add(this.gltf.scene.position)
-			var dist = temp.distanceTo(object) > distance
-			//console.log(dist)
-			if(temp.distanceTo(object) > distance) rt = true
+			var dist = temp.distanceTo(targetPosition)
+			if (dist > max) max = dist
 		})
-		return rt
+		return max
 	}
 	collide(collider, center){
-		if (this.collision_bounce) return
+		//if (this.collision_bounce) return
 		//check collision
-		if(!this.checkProximity(collider.position, 8)) return
+		var distance = this.proximity(collider.position)
+		if(distance < 8) return //no collision
 		console.log("COLLIDE")
-		this.velocity *= 0.7
+		//reduce speed
+		if(this.velocity > this.max_speed/2) this.velocity *= 0.9
 		//change angle to that of the wall you just hit
-		this.direction.set(1,0)
-		this.direction.rotateAround(this.center, collider.rotation.y)
+		var colliderRotation = new THREE.Vector2(1,0).rotateAround(this.center, collider.rotation.y)
+		this.direction.rotateAround(colliderRotation, .1)
 		
-		
-		if(this.controller.collide) console.log(temp, center.model.position)
-
-
-		this.collision_bounce = 25
+		//set up rebound. The variable changes the duration of the rebound
+		this.collision_bounce = 10
 		if(this.drifting) this.endingDrift = true
 		this.road_center_target = center
+
+		//get the car out of the wall
+		var reboundDir = center.model.position.clone()
+		reboundDir.sub(this.gltf.scene.position).setLength(distance-8)
+		console.log(reboundDir)
+		this.gltf.scene.position.add(reboundDir)
 
 		this.collide_angle_dir = (this.direction.angle() - this.road_center_target.model.rotation.y) / 20
 	}
@@ -172,8 +176,8 @@ class base_car{
 		//car.rotation.y = this.velocity.angleTo(this.axis)
 
 		//update damped angle for camera
-		var ang = this.direction.angle() - this.dampedAngle.angle()
-		this.dampedAngle.rotateAround(this.center, ang/5)
+
+		this.dampedAngle.lerp(this.direction, 0.2)
 
 	}
 }

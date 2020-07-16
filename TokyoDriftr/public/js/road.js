@@ -39,7 +39,7 @@ export class road_physics_stripe{
 	update(){
 		this.leapFrogger.update()
 		this.car.collide(this.leapFrogger.usedAssets[10].model, this.leapFrogger.usedAssets[12])
-		if(!this.car.checkProximity(this.lastPoint, 8)) console.log("END")
+		//if(!this.car.proximity(this.lastPoint.model.position) > 8) console.log("END")
 	}
 
 }
@@ -237,7 +237,7 @@ function intersect_self(curve, maxSegDist){
 
 function gen2dpath(numPoints = 10, minSegDist = 15, maxSegDist = 70){
 	var path = [
-		(new THREE.Vector2(-20, 0)),
+		(new THREE.Vector2(-40, 0)),
 		(new THREE.Vector2(35 , 0)),
 	]
 	
