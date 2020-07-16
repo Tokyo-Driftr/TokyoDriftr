@@ -29,7 +29,7 @@ export class playGameState extends gameState{
         this.clock = new THREE.Clock();
         this.scene.background = new THREE.Color('#000000');
         this.keyControls=new keyboardControls()
-        this.gui = new GUI()
+        //this.gui = new GUI()
         this.startTime = Date.now()
         this.changing = false
 
@@ -125,7 +125,8 @@ export class playGameState extends gameState{
             else if(this.choice == 3)
                 car_class = CARS.rx7
                 
-            this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui, this.objects.soundEngine)
+            //this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui, this.objects.soundEngine)
+            this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls)
             globalThis.rx7 = this.objects['rx7']
             setTimeout(() => {
                 this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene, this.objects['rx7'])
