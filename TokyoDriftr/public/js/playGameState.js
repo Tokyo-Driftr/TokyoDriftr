@@ -123,7 +123,7 @@ export class playGameState extends gameState{
             if(this.choice == 2)
                 car_class = CARS.ae86
             else if(this.choice == 3)
-                car_class = CARS.rx7
+                car_class = CARS.civic
                 
             //this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui, this.objects.soundEngine)
             this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls)

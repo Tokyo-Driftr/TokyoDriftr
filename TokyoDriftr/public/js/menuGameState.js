@@ -141,7 +141,7 @@ export class menuGameState extends gameState{
             }
         )
         gltfLoader.load(
-            'res/rx7_3.glb',
+            'res/civic_hatch.glb',
             // called when the resource is loaded
             ( gltf ) => {
                 self.gltf = gltf

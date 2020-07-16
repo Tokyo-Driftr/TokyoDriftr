@@ -185,8 +185,8 @@ class base_car{
 export class rx7 extends base_car{
 	constructor(scene, loader, controller){
 		super(scene, loader, controller, "rx7_3.glb")
-		this.max_speed = .6
-		this.acceleration = .01
+		this.max_speed = .7
+		this.acceleration = .02
 		this.handling = .03
 		this.driftHandling = .01 // handling increase in the direction of the drift
 
@@ -199,12 +199,25 @@ export class ae86 extends base_car{
 	constructor(scene, loader, controller){
 		super(scene, loader, controller, "ae86_2.glb")
 		this.max_speed = .5
-		this.acceleration = .02
-		this.handling = .03
+		this.acceleration = .025
+		this.handling = .04
 		this.driftHandling = .03 // handling increase in the direction of the drift
 
-		this.maxDriftAngle = .7 //radians
-		this.driftSpeed = .03 //rate that the car's orientation changes into and out of drifts
+		this.maxDriftAngle = .5 //radians
+		this.driftSpeed = .025 //rate that the car's orientation changes into and out of drifts
+	}
+}
+
+export class civic extends base_car{
+	constructor(scene, loader, controller){
+		super(scene, loader, controller, "civic_hatch.glb")
+		this.max_speed = .6
+		this.acceleration = .02
+		this.handling = .07
+		this.driftHandling = .01 // handling increase in the direction of the drift
+
+		this.maxDriftAngle = .1 //radians
+		this.driftSpeed = .01 //rate that the car's orientation changes into and out of drifts
 	}
 }
 
