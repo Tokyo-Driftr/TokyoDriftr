@@ -20,87 +20,125 @@ export class menuGameState extends gameState{
         this.scene = scene
         this.keyControls=new keyboardControls()
         this.changing = false
+        this.splash = null
 
+        //Load menu music
         var sound = data.soundEngine.getNewSound()
 		var audioLoader = new THREE.AudioLoader();
-		audioLoader.load( 'res/tokyo2.wav', function( buffer ) {
+		audioLoader.load( 'res/tokyo2.wav', ( buffer ) => {
 			console.log("play sound")
 			sound.setBuffer( buffer );
 			sound.setLoop( true );
 			sound.setVolume( 1 );
 			sound.setLoopStart(0)
-			sound.play();
+            sound.play();
 		});
-		this.music = sound
+        this.music = sound
+
+        
+        
     }
+    //Creates all elements in the scene (Camera, Spotlights, Sprites, Models)
+    //All initial positions for the menu scene are also set here
     async Entered() {
+        //Create Camera positioned to look at the cars
         this.objects["camera"] = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
         this.objects["camera"].position.z = 5;
+        //Cam Controls for Dev purposes
         this.camcontrols = new OrbitControls(this.objects["camera"], this.canvas);
         this.camcontrols.target.set(0, 0, 0);
         this.camcontrols.update();
         this.camcontrols.enabled = true;
         globalThis.controls = this.camcontrols
 
-				this.objects['light'] = new THREE.SpotLight( 0xFFFFFF,1 );
-				this.objects['light'].position.set(0,75,75)
-                this.scene.add(this.objects['light'])
-                //var spotLightHelper = new THREE.SpotLightHelper( this.objects['light'] );
-                //this.scene.add( spotLightHelper );
-                this.objects['light2'] = new THREE.SpotLight( 0xFF33E9,1.5 );
-                this.objects['light2'].position.set(-50,-25,50)
-                this.scene.add(this.objects['light2'])
-                //var spotLightHelper = new THREE.SpotLightHelper( this.objects['light2'] );
-                //this.scene.add( spotLightHelper );   
-                this.objects['light3'] = new THREE.SpotLight( 0x00FFFB,1.5 );
-                this.objects['light3'].position.set(50,-25,50)
-                this.scene.add(this.objects['light3'])
-                //var spotLightHelper = new THREE.SpotLightHelper( this.objects['light3'] );
-                //this.scene.add( spotLightHelper );
-
-
-        this.objects['mesh'] = new THREE.Mesh( new THREE.Geometry(), new THREE.MeshPhongMaterial( { color: 0x3FFAEF } ));
-        this.scene.add( this.objects['mesh']  );
-
-        var data = {
-            text : "W-Accelerate\nA/D-Left/Right\nHold Space-Drift\nPress 1 2 or 3 \nto choose car",
-            size : .5,
-            height : 0.1,
-            curveSegments : 10,
-            font : "helvetiker",
-            weight : "Regular",
-            bevelEnabled : false,
-            bevelThickness : .5,
-            bevelSize : 0.2,
-            bevelSegments: 10,
-        };
-
-
-        this.controller = () => {
-            this.textColor = this.objects['mesh'].material.color.getHex();
+        //Creating spotlights for the scene
+        {	
+            this.objects['light'] = new THREE.SpotLight( 0xFFFFFF,1 ); //White Spotlight
+            this.objects['light'].position.set(0,75,75)
+            this.scene.add(this.objects['light'])
+            this.objects['light2'] = new THREE.SpotLight( 0xFF33E9,1.5 ); //Pink Spotlight
+            this.objects['light2'].position.set(-50,-25,50)
+            this.scene.add(this.objects['light2']) 
+            this.objects['light3'] = new THREE.SpotLight( 0x00FFFB,1.5 ); //Aqua Spotlight
+            this.objects['light3'].position.set(50,-25,50)
+            this.scene.add(this.objects['light3'])
         }
 
-        var loader = new THREE.FontLoader();
-    
-        await loader.load( 'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',  ( font ) => {
-            
-            var geometry = new THREE.TextGeometry( data.text, {
-                font: font,
-                size: data.size,
-                height: data.height,
-                curveSegments: data.curveSegments,
-                bevelEnabled: data.bevelEnabled,
-                bevelThickness: data.bevelThickness,
-                bevelSize: data.bevelSize,
-                bevelSegments: data.bevelSegments
-            } );
+        
+        
+        //Loading Menu Text and Splash Screen
+        var loader = new THREE.TextureLoader()
+        //Create Splash Screen Logo
+        loader.load( 
+            'res/logo.png' ,
+            (map) => {
+                var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
+                var sprite = new THREE.Sprite( material );
+                this.splash = sprite
+                sprite.scale.set(2.5,1.75,1)
+                sprite.position.set(0,0,4)
+                //self.gltf.scene.scale.set(.5,.5,.5)
+                //self.gltf.scene.position.set(-2.5, -2, 0)
+                this.scene.add( sprite );
 
-            geometry.computeBoundingBox()
-            geometry.center();
-            this.objects['mesh'].geometry.dispose();
-            this.objects['mesh'].geometry = geometry;
-            this.objects['mesh'].position.set(0,1.5,0)
-        })
+            },
+        )  
+        //Create Menu Text with Controls Explanation
+        loader.load( 
+            'res/menu_text_blur.png' ,
+            (map) => {
+                var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
+                var sprite = new THREE.Sprite( material );
+                sprite.scale.set(5,5,5)
+                sprite.position.set(0,1.4,0)
+                //self.gltf.scene.scale.set(.5,.5,.5)
+                //self.gltf.scene.position.set(-2.5, -2, 0)
+                this.scene.add( sprite );
+
+            },
+        )  
+        //Create Rx7 Stats Display
+        loader.load( 
+            'res/rx7_stats.png' ,
+            (map) => {
+                var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
+                var sprite = new THREE.Sprite( material );
+                sprite.scale.set(2,1.5,1.5)
+                sprite.position.set(-2.5,-1,2)
+                this.scene.add( sprite );
+            },
+        ) 
+        //Create AE86 Stats Display
+        loader.load( 
+            'res/ae86_stats.png' ,
+            (map) => {
+                var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
+                var sprite = new THREE.Sprite( material );
+                sprite.scale.set(2,1.5,1.5)
+                sprite.position.set(0,-1,2)
+                this.scene.add( sprite );
+            },
+        )  
+        //Create Civic Stats Display
+        loader.load( 
+            'res/civic_stats.png' ,
+            (map) => {
+                var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
+                var sprite = new THREE.Sprite( material );
+                sprite.scale.set(2,1.5,1.5)
+                sprite.position.set(2.5,-1,2)
+                this.scene.add( sprite );
+            },
+        )  
+        
+        //Menu will not load without this for some reason
+        //Need to fix
+        var loader = new THREE.FontLoader();
+        await loader.load( 'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json')
+
+
+        //Loading all models onto Scene
+        //Loads Rx7 Model onto scene
         var gltfLoader = new GLTFLoader();
         gltfLoader.load(
             'res/rx7_3.glb',
@@ -121,6 +159,7 @@ export class menuGameState extends gameState{
 
             }
         )
+        //Loads AE86 Model onto scene
         gltfLoader.load(
             'res/ae86_2.glb',
             // called when the resource is loaded
@@ -140,6 +179,7 @@ export class menuGameState extends gameState{
 
             }
         )
+        //Loads Civic Model onto scene
         gltfLoader.load(
             'res/civic_hatch.glb',
             // called when the resource is loaded
@@ -159,6 +199,7 @@ export class menuGameState extends gameState{
 
             }
         )
+        //Loads the Street Scene
         gltfLoader.load(
             'res/street_scene.glb',
             // called when the resource is loaded
@@ -181,22 +222,28 @@ export class menuGameState extends gameState{
             }
         )
 
-        
-
         this.Draw()
     }
+
+    //Renders the scene then calls Update()
     Draw() {
         this.manager.draw()
     }
+
     //Update() watches for any keystrokes and updates any moving objects
     Update() {
         //this.camcontrols.update()
-        if(this.keyControls.choice && !this.changing) {
+        if(this.splash != null && this.music.isPlaying) {
+            this.scene.remove(this.splash)
+            this.splash = null
+        }
+        if(this.keyControls.choice && !this.changing && this.music.isPlaying) {
             this.manager.setState(new playGameState(this.renderer, this.scene, this.manager, 
                 {choice: this.keyControls.num, soundEngine: this.objects['soundEngine']}))
             this.changing = true
         }
     }
+
     //Leaving() clears all objects, gemoetry, and materials on the scene when changing to another scene
     //Leaving() is async so that when objects are being deleted it doesn't start deleting objects in the new scene
     async Leaving() {

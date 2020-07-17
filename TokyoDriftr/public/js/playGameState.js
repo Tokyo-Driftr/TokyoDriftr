@@ -29,10 +29,11 @@ export class playGameState extends gameState{
         this.clock = new THREE.Clock();
         this.scene.background = new THREE.Color('#000000');
         this.keyControls=new keyboardControls()
-        //this.gui = new GUI()
+        this.gui = new GUI()
         this.startTime = Date.now()
         this.changing = false
-
+        
+        //Add and play music track.
         var sound = data.soundEngine.getNewSound()
 		var audioLoader = new THREE.AudioLoader();
 		audioLoader.load( 'res/tokyo1.wav', function( buffer ) {
@@ -44,6 +45,7 @@ export class playGameState extends gameState{
 			sound.play();
 		});
         this.music = sound
+
         this.count = 0
     }
 
@@ -126,7 +128,7 @@ export class playGameState extends gameState{
                 car_class = CARS.civic
                 
             //this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui, this.objects.soundEngine)
-            this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls)
+            this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui)
             globalThis.rx7 = this.objects['rx7']
             setTimeout(() => {
                 this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene, this.objects['rx7'])
@@ -152,16 +154,16 @@ export class playGameState extends gameState{
                 belongsTo: 1 << 4,
             }
         }
-
-        //var freecam = this.gui.add(this.options, 'freecam')
-        /*freecam.onChange(() => {
+        
+        //add the dev option for freecam
+        var freecam = this.gui.add(this.options, 'freecam')
+        freecam.onChange(() => {
             this.changeCam(this)
-        })*/
+        })
 
-        //this.gui.open()
+        this.gui.open()
         
         setTimeout(() => {
-            
             this.Draw()
         }, 500);
     }
@@ -171,7 +173,8 @@ export class playGameState extends gameState{
         this.manager.draw()
     }
     
-    //Update() watches for any keystrokes and updates any moving objects
+    //Update() watches for any keystrokes and updates any moving object and the camera.
+    //Update() also handles the countDown
     Update() {
         //Countdown implementation for starting the race.
         var num = (Date.now()-this.startTime)/1000
@@ -190,31 +193,20 @@ export class playGameState extends gameState{
         }
         
 
-        var y_axis = new THREE.Vector3( 0, 1, 0 );
+        
 
         this.objects['testRoad'].update()
 
+        this.updateCam()
+
         //after countdown is done let the car move
         if(!this.options.freecam) {
-            if(this.count==4)
-                this.objects['rx7'].update()
-
-            //Camera update
-            const camera_distance = 25
-
-            //Generate cam pos based 
-            //controls.target.set(rx7.gltf.scene.position.x, rx7.gltf.scene.position.y + 2, rx7.gltf.scene.position.z)
-            var cameraPos = new THREE.Vector3()
-            //calc distance from car
-            cameraPos.set(0, 8, camera_distance)
-            //rotate to the opposite of velocity vector
-            cameraPos.applyAxisAngle(y_axis, rx7.dampedAngle.angle() + Math.PI)
-            //add the position
-            cameraPos.add(rx7.gltf.scene.position)
-            this.objects['camera'].position.set(cameraPos.x, cameraPos.y, cameraPos.z)
-
-            this.camcontrols.target.set(this.objects['rx7'].gltf.scene.position.x, this.objects['rx7'].gltf.scene.position.y, this.objects['rx7'].gltf.scene.position.z)
-            this.camcontrols.update()
+            if(this.count == 4) {
+                this.objects['rx7'].update(true)
+            }
+            else {
+                this.objects['rx7'].update(false)
+            }
         }
         else {
             this.flycontrols.update(this.clock.getDelta())
@@ -255,6 +247,24 @@ export class playGameState extends gameState{
         
     }
 
+    //Updates the camera position and rotation to be behind the players car.
+    //Only the objects['camera'] and camcontrols are changed during this update
+    updateCam() {
+        var y_axis = new THREE.Vector3( 0, 1, 0 );
+        const camera_distance = 25
+        var cameraPos = new THREE.Vector3()
+        //calc distance from car
+        cameraPos.set(0, 8, camera_distance)
+        //rotate to the opposite of velocity vector
+        cameraPos.applyAxisAngle(y_axis, rx7.dampedAngle.angle() + Math.PI)
+        //add the position
+        cameraPos.add(rx7.gltf.scene.position)
+        this.objects['camera'].position.set(cameraPos.x, cameraPos.y, cameraPos.z)
+
+        this.camcontrols.target.set(this.objects['rx7'].gltf.scene.position.x, this.objects['rx7'].gltf.scene.position.y, this.objects['rx7'].gltf.scene.position.z)
+        this.camcontrols.update()
+    }
+
     //For switching between freecam static camera for development features.
     changeCam(self) {
         
@@ -269,19 +279,24 @@ export class playGameState extends gameState{
         }
     }
     //Creates textGeometry for countdown at the begginning of the race.
+    //Each time the countdown changes the old text is deleted and new text is created
     countDown(num) {
         this.count++
+        //Deletes the text object if one is created
         if(num!=3)
             this.scene.remove(this.objects['countdown'])
 
+        //This if statement will create a new Text Object of the current 
         if(num!=0) {
-            this.objects['countdown'] = new THREE.Mesh( new THREE.Geometry(), new THREE.MeshPhongMaterial( { color: 0x3FFAEF } ));
+            this.objects['countdown'] = new THREE.Mesh( new THREE.Geometry(), new THREE.MeshPhongMaterial( { 
+                color: 0x3FFAEF //light blue
+            } ));
             this.scene.add( this.objects['countdown']  );
 
             var data = {
                 text : num.toString(),
-                size : 10,
-                height : .8,
+                size : 8,
+                height : .6,
                 curveSegments : 10,
                 font : "helvetiker",
                 weight : "Regular",
@@ -315,7 +330,7 @@ export class playGameState extends gameState{
                 geometry.center();
                 this.objects['countdown'].geometry.dispose();
                 this.objects['countdown'].geometry = geometry;
-                this.objects['countdown'].position.set(-6,6,0)
+                this.objects['countdown'].position.set(-6,5,0)
                 this.objects['countdown'].rotation.set(0,-1.5708,0)
             })
         }

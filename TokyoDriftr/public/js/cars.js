@@ -1,16 +1,21 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 class base_car{
-	max_speed = 10
-	acceleration = .1
-	handling = .05 //radians turned per frame
-	center = new THREE.Vector2(0,0)
-	dampedAngle = new THREE.Vector2(1,0)
+		options = {
+			max_speed: 10,
+			acceleration: .1,
+			handling: .05, //radians turned per frame
+			driftHandling: .01, // handling increase in the direction of the drift
+			maxDriftAngle: .3, //radians
+			driftSpeed: .01,
+		}
 	width = 2
 	length = 4
 	collision_bounce = 0
+	center = new THREE.Vector2(0,0)
+	dampedAngle = new THREE.Vector2(1,0)
 	road_center_target = null
 	y_axis = new THREE.Vector3(0,1,0)
-	constructor(scene, loader, controller, modelName){
+	constructor(scene, loader, controller, modelName, gui){
 		var hitbox_material = new THREE.MeshLambertMaterial( { color: 0x004400, wireframe: true } );
 		var hitbox_geometry = new THREE.BoxGeometry(this.width, 4, this.length);
 		this.hitbox = new THREE.Mesh( hitbox_geometry, hitbox_material );
@@ -47,6 +52,13 @@ class base_car{
 
 			}
 		);
+		var guiControls = gui.addFolder("Car Controls")
+        guiControls.add(this.options, 'max_speed', 0, 1, .01).listen()
+        guiControls.add(this.options, 'acceleration', 0, 1, .01).listen()
+        guiControls.add(this.options, 'handling', 0, .1, .01).listen()
+        guiControls.add(this.options, 'driftHandling', 0, .2, .01).listen()
+        guiControls.add(this.options, 'maxDriftAngle', 0, 1, .01).listen()
+        guiControls.add(this.options, 'driftSpeed', 0, 1, .01).listen()
 
 	}
 	proximity(targetPosition){
@@ -68,7 +80,7 @@ class base_car{
 		if(distance < 8) return //no collision
 		console.log("COLLIDE")
 		//reduce speed
-		if(this.velocity > this.max_speed/2) this.velocity *= 0.9
+		if(this.velocity > this.options.max_speed/2) this.velocity *= 0.9
 		//change angle to that of the wall you just hit
 		var colliderRotation = new THREE.Vector2(1,0).rotateAround(this.center, collider.rotation.y)
 		this.direction.rotateAround(colliderRotation, .1)
@@ -86,7 +98,7 @@ class base_car{
 
 		this.collide_angle_dir = (this.direction.angle() - this.road_center_target.model.rotation.y) / 20
 	}
-	update(){
+	update(move){
 		var car = this.gltf.scene
 		this.hitbox.position.copy(car.position)
 		this.hitbox.rotation.copy(car.rotation)
@@ -121,8 +133,8 @@ class base_car{
 				//this.driftDeltaDirection.set(1,0)
 			}
 			//rotate car into drift
-			if(absangle(this.driftDeltaDirection) < this.maxDriftAngle) 
-				this.driftDeltaDirection.rotateAround(this.center, this.driftDirection * this.driftSpeed)
+			if(absangle(this.driftDeltaDirection) < this.options.maxDriftAngle) 
+				this.driftDeltaDirection.rotateAround(this.center, this.driftDirection * this.options.driftSpeed)
 			//put sparks and stuff after it's been drifting for a bit
 		}
 		else if(this.drifting){
@@ -131,13 +143,13 @@ class base_car{
 		}
 		if(this.endingDrift){
 			//end drift
-			if(absangle(this.driftDeltaDirection)*2 > this.driftSpeed){
+			if(absangle(this.driftDeltaDirection)*2 > this.options.driftSpeed){
 				this.endingDrift = true
 				console.log("ending drift. dd:", this.driftDeltaDirection.angle(), "td:", this.direction.angle())
 				//unrotate deltadirection
-				this.driftDeltaDirection.rotateAround(this.center, -1 * this.driftDirection * this.driftSpeed)
+				this.driftDeltaDirection.rotateAround(this.center, -1 * this.driftDirection * this.options.driftSpeed)
 				//rotate car direction
-				this.direction.rotateAround(this.center,  this.driftDirection * this.driftSpeed)
+				this.direction.rotateAround(this.center,  this.driftDirection * this.options.driftSpeed)
 			}else{
 				this.endingDrift = false
 				this.driftDeltaDirection.set(1,0)
@@ -145,23 +157,23 @@ class base_car{
 		}
 
 		//handle acceleration
-		if(this.controller.accelerate){
-			if (!this.drifting && this.velocity < this.max_speed) this.velocity += this.acceleration
+		if(this.controller.accelerate && move){
+			if (!this.drifting && this.velocity < this.options.max_speed) this.velocity += this.options.acceleration
 		}else if(this.controller.brake){
-			if (this.velocity != 0) this.velocity = Math.max(0, this.velocity - 3*this.acceleration)
+			if (this.velocity != 0) this.velocity = Math.max(0, this.velocity - 3*this.options.acceleration)
 		}else{
 			//no input
-			if (this.velocity != 0) this.velocity = Math.max(0, this.velocity - 0.5*this.acceleration)
+			if (this.velocity != 0) this.velocity = Math.max(0, this.velocity - 0.5*this.options.acceleration)
 		}
 
 		{
 			//calculate steering
 			var steering_angle = 0
 			if(this.drifting){
-				steering_angle = (this.driftDirection + this.controller.turnDirection) * 0.5 * (this.handling + this.driftHandling) * this.velocity
+				steering_angle = (this.driftDirection + this.controller.turnDirection) * 0.5 * (this.options.handling + this.options.driftHandling) * this.velocity
 			}
 			else{
-				steering_angle = this.controller.turnDirection * this.handling * this.velocity
+				steering_angle = this.controller.turnDirection * this.options.handling * this.velocity
 			}
 			this.direction.rotateAround(this.center, steering_angle)
 		}
@@ -183,12 +195,12 @@ class base_car{
 }
 
 export class rx7 extends base_car{
-	constructor(scene, loader, controller){
-		super(scene, loader, controller, "rx7_3.glb")
-		this.max_speed = .7
-		this.acceleration = .02
-		this.handling = .03
-		this.driftHandling = .01 // handling increase in the direction of the drift
+	constructor(scene, loader, controller, gui){
+		super(scene, loader, controller, "rx7_3.glb", gui)
+		this.options.max_speed = .7
+		this.options.acceleration = .02
+		this.options.handling = .03
+		this.options.driftHandling = .01 // handling increase in the direction of the drift
 
 		this.maxDriftAngle = .3 //radians
 		this.driftSpeed = .01 //rate that the car's orientation changes into and out of drifts
@@ -196,28 +208,28 @@ export class rx7 extends base_car{
 }
 
 export class ae86 extends base_car{
-	constructor(scene, loader, controller){
-		super(scene, loader, controller, "ae86_2.glb")
-		this.max_speed = .5
-		this.acceleration = .025
-		this.handling = .04
-		this.driftHandling = .03 // handling increase in the direction of the drift
+	constructor(scene, loader, controller, gui){
+		super(scene, loader, controller, "ae86_2.glb", gui)
+		this.options.max_speed = .5
+		this.options.acceleration = .025
+		this.options.handling = .04
+		this.options.driftHandling = .03 // handling increase in the direction of the drift
 
-		this.maxDriftAngle = .5 //radians
-		this.driftSpeed = .025 //rate that the car's orientation changes into and out of drifts
+		this.options.maxDriftAngle = .5 //radians
+		this.options.driftSpeed = .025 //rate that the car's orientation changes into and out of drifts
 	}
 }
 
 export class civic extends base_car{
 	constructor(scene, loader, controller){
-		super(scene, loader, controller, "civic_hatch.glb")
-		this.max_speed = .6
-		this.acceleration = .02
-		this.handling = .07
-		this.driftHandling = .01 // handling increase in the direction of the drift
+		super(scene, loader, controller, "civic_hatch.glb", gui)
+		this.options.max_speed = .6
+		this.options.acceleration = .02
+		this.options.handling = .07
+		this.options.driftHandling = .01 // handling increase in the direction of the drift
 
-		this.maxDriftAngle = .1 //radians
-		this.driftSpeed = .01 //rate that the car's orientation changes into and out of drifts
+		this.options.maxDriftAngle = .1 //radians
+		this.options.driftSpeed = .01 //rate that the car's orientation changes into and out of drifts
 	}
 }
 
