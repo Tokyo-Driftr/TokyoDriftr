@@ -1,13 +1,7 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
-import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
-import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
 import {keyboardControls} from '/js/controller.js'
-import * as CARS from '/js/cars.js'
-import * as GAME_CONTROL from '/js/game_control.js'
-import { stateManager } from '/js/stateManager.js'
 import { gameState } from '/js/gameState.js'
 import { playGameState } from '/js/playGameState.js';
-import { soundEngine } from '/js/soundEngine.js';
 
 String.prototype.toHHMMSS = function () {
     var sec_num = parseInt(this, 10); // don't forget the second param
