@@ -128,10 +128,12 @@ export class leapFrogger{
 
 			this.nextLoadPoint++
 		}
-		this.processLeap()
+		if(this.car.gltf.scene != "undefined")
+			this.processLeap()
 	}
 
 	processLeap(){
+		
 		var carPos = this.car.gltf.scene.position
 	
 		while(carPos.distanceTo(this.usedAssets[this.dist_behind_car].model.position) > carPos.distanceTo(this.usedAssets[this.dist_behind_car+1].model.position)){

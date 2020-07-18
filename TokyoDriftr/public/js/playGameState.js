@@ -194,8 +194,8 @@ export class playGameState extends gameState{
         
 
         
-
-        this.objects['testRoad'].update()
+        if(this.objects['testRoad'] != "undefined")
+            this.objects['testRoad'].update()
 
         this.updateCam()
 
