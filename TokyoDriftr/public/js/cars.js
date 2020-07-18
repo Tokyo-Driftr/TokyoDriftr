@@ -221,7 +221,7 @@ export class ae86 extends base_car{
 }
 
 export class civic extends base_car{
-	constructor(scene, loader, controller){
+	constructor(scene, loader, controller, gui){
 		super(scene, loader, controller, "civic_hatch.glb", gui)
 		this.options.max_speed = .6
 		this.options.acceleration = .02

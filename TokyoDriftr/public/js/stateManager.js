@@ -1,11 +1,3 @@
-import * as THREE from 'https://unpkg.com/three/build/three.module.js';
-import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
-import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
-import {keyboardControls} from '/js/controller.js'
-import { gameState } from '/js/gameState.js'
-import { playGameState } from '/js/playGameState.js'
-import { menuGameState } from '/js/menuGameState.js'
-
 export class stateManager {
     constructor(renderer, scene) {
         this.currentState;
@@ -61,9 +53,6 @@ export class stateManager {
                 this.currentState.canvas = this.currentState.renderer.domElement;
                 this.currentState.objects["camera"].aspect = this.currentState.canvas.clientWidth / this.currentState.canvas.clientHeight;
                 this.currentState.objects["camera"].updateProjectionMatrix();
-                /*this.currentState.objects["camera"].right = canvas.width;
-                this.currentState.objects["camera"].bottom = canvas.height;
-                this.currentState.objects["camera"].updateProjectionMatrix();*/
             }
         
             this.currentState.renderer.render(this.currentState.scene, this.currentState.objects["camera"]);
