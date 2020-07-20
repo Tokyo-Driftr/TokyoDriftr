@@ -2,9 +2,6 @@ import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
 import {keyboardControls} from '/js/controller.js'
-import * as CARS from '/js/cars.js'
-import * as GAME_CONTROL from '/js/game_control.js'
-import { stateManager } from '/js/stateManager.js'
 import { gameState } from '/js/gameState.js'
 import { playGameState } from '/js/playGameState.js';
 
@@ -29,18 +26,55 @@ export class menuGameState extends gameState{
 			console.log("play sound")
 			sound.setBuffer( buffer );
 			sound.setLoop( true );
-			sound.setVolume( 1 );
+			sound.setVolume( 0 );
 			sound.setLoopStart(0)
             sound.play();
 		});
         this.music = sound
 
-        
+        this.cars = []
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2( 1, 1 );
         
     }
     //Creates all elements in the scene (Camera, Spotlights, Sprites, Models)
     //All initial positions for the menu scene are also set here
     async Entered() {
+        window.addEventListener( 'mousemove', (event) => {
+            event.preventDefault();
+            this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+            this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+            this.objects["rx7_stats"].position.set(0,0,1000)
+            this.objects["ae86_stats"].position.set(0,0,1000)
+            this.objects["civic_stats"].position.set(0,0,1000)
+            this.objects["menu_text_"].position.set(0,0,0)
+
+            // update the picking ray with the camera and mouse position
+            this.raycaster.setFromCamera( this.mouse, this.objects["camera"] );
+
+            // calculate objects intersecting the picking ray
+            var intersects = this.raycaster.intersectObjects( this.cars, true);
+        
+            for ( var i = 0; i < intersects.length; i++ ) {
+                var point = intersects[ i ].point.x
+                //console.log(intersects[ i ].point)
+                if(point < -.5){
+                    this.objects["rx7_stats"].position.set(0,.1,2)
+                    this.objects["menu_text_"].position.set(0,0,100)
+                }
+                else if(point > -.5 && point < .5){
+                    this.objects["ae86_stats"].position.set(0,.1,2)
+                    this.objects["menu_text_"].position.set(0,0,100)
+                }
+                else if(point > .5){
+                    this.objects["civic_stats"].position.set(0,.1,2)
+                    this.objects["menu_text_"].position.set(0,0,100)
+                }
+                
+
+            }
+        }, false );
         //Create Camera positioned to look at the cars
         this.objects["camera"] = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
         this.objects["camera"].position.z = 5;
@@ -69,7 +103,7 @@ export class menuGameState extends gameState{
         //Loading Menu Text and Splash Screen
         var loader = new THREE.TextureLoader()
         //Create Splash Screen Logo
-        loader.load( 
+        await loader.load( 
             'res/logo.png' ,
             (map) => {
                 var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
@@ -77,22 +111,34 @@ export class menuGameState extends gameState{
                 this.splash = sprite
                 sprite.scale.set(2.5,1.75,1)
                 sprite.position.set(0,0,4)
-                //self.gltf.scene.scale.set(.5,.5,.5)
-                //self.gltf.scene.position.set(-2.5, -2, 0)
                 this.scene.add( sprite );
 
             },
         )  
         //Create Menu Text with Controls Explanation
         loader.load( 
-            'res/menu_text_blur.png' ,
+            'res/menu_text_top.png' ,
             (map) => {
                 var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
                 var sprite = new THREE.Sprite( material );
-                sprite.scale.set(5,5,5)
-                sprite.position.set(0,1.4,0)
-                //self.gltf.scene.scale.set(.5,.5,.5)
-                //self.gltf.scene.position.set(-2.5, -2, 0)
+                sprite.scale.set(5,2.5,2)
+                sprite.position.set(0,2.5,0)
+                //sprite.position.set(0,1.4,0)
+                this.objects["menu_text"] = sprite
+                this.scene.add( sprite );
+
+            },
+        )  
+        //Create Menu Text with Controls Explanation
+        loader.load( 
+            'res/menu_text_.png' ,
+            (map) => {
+                var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
+                var sprite = new THREE.Sprite( material );
+                sprite.scale.set(5,4,4)
+                sprite.position.set(0,0,0)
+                //sprite.position.set(0,1.4,100)
+                this.objects["menu_text_"] = sprite
                 this.scene.add( sprite );
 
             },
@@ -104,7 +150,8 @@ export class menuGameState extends gameState{
                 var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
                 var sprite = new THREE.Sprite( material );
                 sprite.scale.set(2,1.5,1.5)
-                sprite.position.set(-2.5,-1,2)
+                sprite.position.set(-2.5,-1,100)
+                this.objects["rx7_stats"] = sprite
                 this.scene.add( sprite );
             },
         ) 
@@ -115,7 +162,8 @@ export class menuGameState extends gameState{
                 var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
                 var sprite = new THREE.Sprite( material );
                 sprite.scale.set(2,1.5,1.5)
-                sprite.position.set(0,-1,2)
+                sprite.position.set(0,-1,100)
+                this.objects["ae86_stats"] = sprite
                 this.scene.add( sprite );
             },
         )  
@@ -126,27 +174,23 @@ export class menuGameState extends gameState{
                 var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
                 var sprite = new THREE.Sprite( material );
                 sprite.scale.set(2,1.5,1.5)
-                sprite.position.set(2.5,-1,2)
+                sprite.position.set(2.5,-1,100)
+                this.objects["civic_stats"] = sprite
                 this.scene.add( sprite );
             },
         )  
-        
-        //Menu will not load without this for some reason
-        //Need to fix
-        var loader = new THREE.FontLoader();
-        await loader.load( 'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json')
-
 
         //Loading all models onto Scene
         //Loads Rx7 Model onto scene
         var gltfLoader = new GLTFLoader();
-        gltfLoader.load(
+        await gltfLoader.load(
             'res/rx7_3.glb',
             // called when the resource is loaded
             ( gltf ) => {
                 self.gltf = gltf
                 self.gltf.scene.scale.set(.5,.5,.5)
                 self.gltf.scene.position.set(-2.5, -2, 0)
+                this.cars.push(self.gltf.scene)
                 this.scene.add( gltf.scene );
             },
             // called while loading is progressing
@@ -160,13 +204,14 @@ export class menuGameState extends gameState{
             }
         )
         //Loads AE86 Model onto scene
-        gltfLoader.load(
+        await gltfLoader.load(
             'res/ae86_2.glb',
             // called when the resource is loaded
             ( gltf ) => {
                 self.gltf = gltf
                 self.gltf.scene.scale.set(.5,.5,.5)
                 self.gltf.scene.position.set(0, -2, 0)
+                this.cars.push(self.gltf.scene)
                 this.scene.add( gltf.scene );
             },
             // called while loading is progressing
@@ -180,13 +225,14 @@ export class menuGameState extends gameState{
             }
         )
         //Loads Civic Model onto scene
-        gltfLoader.load(
+        await gltfLoader.load(
             'res/civic_hatch.glb',
             // called when the resource is loaded
             ( gltf ) => {
                 self.gltf = gltf
                 self.gltf.scene.scale.set(.5,.5,.5)
                 self.gltf.scene.position.set(2.5, -2, 0)
+                this.cars.push(self.gltf.scene)
                 this.scene.add( gltf.scene );
             },
             // called while loading is progressing
@@ -232,6 +278,7 @@ export class menuGameState extends gameState{
 
     //Update() watches for any keystrokes and updates any moving objects
     Update() {
+
         //this.camcontrols.update()
         if(this.splash != null && this.music.isPlaying) {
             this.scene.remove(this.splash)

@@ -40,7 +40,7 @@ export class playGameState extends gameState{
 			console.log("play sound")
 			sound.setBuffer( buffer );
 			sound.setLoop( true );
-			sound.setVolume( .75 );
+			sound.setVolume( 0 );
 			sound.setLoopStart(0)
 			sound.play();
 		});
