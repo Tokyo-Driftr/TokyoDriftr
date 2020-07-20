@@ -7,6 +7,146 @@ The road holds a list  of n total road assets and "leapfrogs" them from behind t
 
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
+class road_side_deco{
+	/*
+		This class controls all of the decorations that are visible alongside the road during normal gameplay.
+		It holds a data array that stores data about models in this format:
+		{
+			name: <model name.glb>
+			width: <horizontal width, alongside road>
+			dist: <distance from centerpoint of model to edge of model>
+			num: <number of copies of this model to be drawn
+		}
+		Models are assumed to be pre-centered, located in /buildings, and facing in the -y direction
+	*/
+	models_info = [
+		
+		{
+			name: "building_1.glb",
+			width: 22,
+			dist: 22,
+			num: 5
+		},
+		{
+			name: "building_2.glb",
+			width: 20,
+			dist: 18,
+			num: 5
+		},
+		{
+			name: "building_4.glb",
+			width: 18,
+			dist: 18,
+			num: 5
+		},
+		
+		{
+			name: "building_5.glb",
+			width: 17,
+			dist: 17,
+			num: 5
+		},
+		{
+			name: "building_6.glb",
+			width: 20,
+			dist: 18,
+			num: 5
+		},
+		{
+			name: "building_basic_1.glb",
+			width: 13,
+			dist: 16,
+			num: 5
+		},
+		
+		{
+			name: "building_basic_2.glb",
+			width: 20,
+			dist: 18,
+			num: 5
+		},
+		{
+			name: "building_basic_3.glb",
+			width: 30,
+			dist: 22,
+			num: 5
+		},
+		{
+			name: "building_7.glb",
+			width: 16,
+			dist: 25,
+			num: 5
+		},
+		
+	]
+	constructor(path, scene, car, loader){
+		this.car = car
+		var meshes_r = []
+		var meshes_l = []
+		async function loadData(self){
+			self.models_info.forEach((data, i) => {
+				loader.load(
+					'buildings/' + data.name,
+					// called when the resource is loaded
+					function ( gltf ) {
+						var model = gltf.scene
+						model.rotation.set(0,Math.PI/2,0)
+						model.position.set(-data.dist,0,0)
+						model.scale.set(2,2,2)
+						var group = new THREE.Group()
+						group.add(model)
+						for(var i = 0; i < data.num; i++){
+							var clone = group.clone()
+							scene.add(clone)
+							meshes_r.unshift({
+								"model": clone,
+								"width": data.width,
+								"dist": data.dist,
+
+							})
+						}
+						model.position.set(data.dist,0,0)
+						model.rotation.set(0,-Math.PI/2,0)
+						group = new THREE.Group()
+						group.add(model)
+						for(var i = 0; i < data.num; i++){
+							var clone = group.clone()
+							scene.add(clone)
+							meshes_l.unshift({
+								"model": clone,
+								"width": data.width,
+								"dist": data.dist,
+
+							})
+						}
+						console.log(data.name)
+					},
+					// called while loading is progressing
+					function ( xhr ) {
+						console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+					},
+					// called when loading has errors
+					function ( error ) {
+						console.log( 'An error happened', error );
+		
+					}
+				);
+			})
+		}
+		loadData(this).then(()=>{
+			setTimeout(()=>{
+				this.leapFrogger_l = new leapFrogger(path, shuffleList(meshes_l), car)
+				this.leapFrogger_r = new leapFrogger(path, shuffleList(meshes_r), car)
+			}, 300)
+		})
+	}
+	update(){
+		this.leapFrogger_r.update()
+		this.leapFrogger_l.update()
+	}
+}
+
+
 export class road_physics_stripe{
 	/*
 		This class works by using the leapfrogger to display a dotted line along the center of the road.
@@ -214,13 +354,15 @@ export class road{
 	/*
 		road is the master class for the road, it controls all leapfrogging behavior and draws the road
 	*/
-	constructor(path, scene, car){
+	constructor(path, scene, car, loader){
 		this.car = car
 		this.road_stripes = new road_physics_stripe(path, scene, car)
 		this.road_shape = new vectorRoad(path, scene, car)
+		this.road_buildings = new road_side_deco(path, scene, car, loader)
 	}
 	update(){
 		this.road_stripes.update()
+		this.road_buildings.update()
 	}
 }
 
@@ -307,10 +449,21 @@ export function testRoad(loader, scene, car){
 		(new THREE.Vector3(-20, 0, 100)),
 		(new THREE.Vector3(-50, 0, 40)),
 	]
-	path = gen2dpath(20)
-	return new road(path, scene, car)
+	path = gen2dloop(20)
+	return new road(path, scene, car, loader)
 }
 
 function randVal(mag){
 	return Math.random() * 2 * mag + mag
+}
+
+function shuffleList(list){
+	for (var i = 0; i < list.length; i++){
+		var randomIndex1 = Math.floor(Math.random()*list.length)
+		var randomIndex2 = Math.floor(Math.random()*list.length)
+		var temp = list[randomIndex1]
+		list[randomIndex1] = list[randomIndex2]
+		list[randomIndex2] = temp
+	}
+	return list
 }
