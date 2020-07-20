@@ -40,7 +40,7 @@ export class playGameState extends gameState{
 			console.log("play sound")
 			sound.setBuffer( buffer );
 			sound.setLoop( true );
-			sound.setVolume( 0 );
+			sound.setVolume( .2 );
 			sound.setLoopStart(0)
 			sound.play();
 		});
@@ -128,12 +128,12 @@ export class playGameState extends gameState{
                 car_class = CARS.civic
                 
             //this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui, this.objects.soundEngine)
-            this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui)
+            this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui);
             globalThis.rx7 = this.objects['rx7']
             setTimeout(() => {
                 this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene, this.objects['rx7'])
                 globalThis.road = this.objects['testRoad']
-            }, 200);
+            }, 500);
         }
         //Please remove eventually.  Collision box
         {
@@ -194,8 +194,9 @@ export class playGameState extends gameState{
         
 
         
-        if(this.objects['testRoad'] != "undefined")
-            this.objects['testRoad'].update()
+        if(typeof(this.objects['testRoad']) != "undefined")
+            //console.log("frick")
+        this.objects['testRoad'].update()
 
         this.updateCam()
 

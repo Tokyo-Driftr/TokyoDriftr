@@ -26,7 +26,7 @@ export class menuGameState extends gameState{
 			console.log("play sound")
 			sound.setBuffer( buffer );
 			sound.setLoop( true );
-			sound.setVolume( 0 );
+			sound.setVolume( .2 );
 			sound.setLoopStart(0)
             sound.play();
 		});
@@ -58,7 +58,6 @@ export class menuGameState extends gameState{
         
             for ( var i = 0; i < intersects.length; i++ ) {
                 var point = intersects[ i ].point.x
-                //console.log(intersects[ i ].point)
                 if(point < -.5){
                     this.objects["rx7_stats"].position.set(0,.1,2)
                     this.objects["menu_text_"].position.set(0,0,100)
@@ -71,8 +70,36 @@ export class menuGameState extends gameState{
                     this.objects["civic_stats"].position.set(0,.1,2)
                     this.objects["menu_text_"].position.set(0,0,100)
                 }
-                
+            }
+        }, false );
+        window.addEventListener( 'click', (event) => {
+            event.preventDefault();
+            this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+            this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 
+            // update the picking ray with the camera and mouse position
+            this.raycaster.setFromCamera( this.mouse, this.objects["camera"] );
+
+            // calculate objects intersecting the picking ray
+            var intersects = this.raycaster.intersectObjects( this.cars, true);
+        
+            for ( var i = 0; i < intersects.length; i++ ) {
+                var point = intersects[ i ].point.x
+                var choice = 1
+                if(point < -.5){
+                    choice = 1
+                }
+                else if(point > -.5 && point < .5){
+                    choice = 2
+                }
+                else if(point > .5){
+                    choice = 3
+                }
+                if( !this.changing && this.music.isPlaying ) {
+                    this.manager.setState(new playGameState(this.renderer, this.scene, this.manager, 
+                        {choice: 3, soundEngine: this.objects['soundEngine']}))
+                    this.changing = true
+                }
             }
         }, false );
         //Create Camera positioned to look at the cars
@@ -283,11 +310,6 @@ export class menuGameState extends gameState{
         if(this.splash != null && this.music.isPlaying) {
             this.scene.remove(this.splash)
             this.splash = null
-        }
-        if(this.keyControls.choice && !this.changing && this.music.isPlaying) {
-            this.manager.setState(new playGameState(this.renderer, this.scene, this.manager, 
-                {choice: this.keyControls.num, soundEngine: this.objects['soundEngine']}))
-            this.changing = true
         }
     }
 

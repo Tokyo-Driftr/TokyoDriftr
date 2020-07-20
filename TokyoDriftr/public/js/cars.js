@@ -52,13 +52,13 @@ class base_car{
 
 			}
 		);
-		var guiControls = gui.addFolder("Car Controls")
+		/*var guiControls = gui.addFolder("Car Controls")
         guiControls.add(this.options, 'max_speed', 0, 1, .01).listen()
         guiControls.add(this.options, 'acceleration', 0, 1, .01).listen()
         guiControls.add(this.options, 'handling', 0, .1, .01).listen()
         guiControls.add(this.options, 'driftHandling', 0, .2, .01).listen()
         guiControls.add(this.options, 'maxDriftAngle', 0, 1, .01).listen()
-        guiControls.add(this.options, 'driftSpeed', 0, 1, .01).listen()
+        guiControls.add(this.options, 'driftSpeed', 0, 1, .01).listen()*/
 
 	}
 	proximity(targetPosition){
