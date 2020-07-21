@@ -233,7 +233,6 @@ export class menuGameState extends gameState{
             // called when loading has errors
             function ( error ) {
                 console.log( 'An error happened', error );
-
             }
         )
         //Loads AE86 Model onto scene

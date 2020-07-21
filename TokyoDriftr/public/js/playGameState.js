@@ -3,14 +3,12 @@ import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/Orb
 import { FlyControls } from 'https://unpkg.com/three/examples/jsm/controls/FlyControls.js'
 import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
 import { GUI } from 'https://unpkg.com/three/examples/jsm/libs/dat.gui.module.js';
-import {keyboardControls} from '/js/controller.js';
-import { CSS2DRenderer, CSS2DObject } from 'https://unpkg.com/three/examples/jsm/renderers/CSS2DRenderer.js';
+import {keyboardControls} from '/js/controller.js'
 import * as CARS from '/js/cars.js';
 import * as GAME_CONTROL from '/js/game_control.js';
 import * as ROAD from '/js/road.js';
 import { gameState } from '/js/gameState.js';
 import { endScreenGameState } from '/js/endScreenGameState.js';
-import { soundEngine } from '/js/soundEngine.js';
 
 export class playGameState extends gameState{
     constructor(renderer,scene,manager,data) {
