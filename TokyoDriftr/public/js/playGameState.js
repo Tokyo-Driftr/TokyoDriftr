@@ -46,7 +46,7 @@ export class playGameState extends gameState{
         this.camcontrols = new OrbitControls(this.objects["camera"], this.canvas);
         this.camcontrols.target.set(0, 0, 0);
         this.camcontrols.update();
-        this.camcontrols.enabled = true;
+        this.camcontrols.enabled = false;
         globalThis.controls = this.camcontrols
         //set up fly controls
         /*this.flycontrols = new FlyControls( this.objects["camera"], this.canvas);
