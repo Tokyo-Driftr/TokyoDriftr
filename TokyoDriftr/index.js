@@ -8,8 +8,7 @@ const user = require('./models/userSchema.js');
 app.use(express.static('public'))
 app.use(bodyParser.json()); 
 
-//var mongoDB = 'mongodb://localhost/tokyodriftr';
-var mongoDB = 'mongodb+srv://ljharvey@ucsc.edu:1020874!Xx@cluster0-xdovd.azure.mongodb.net/driftr?retryWrites=true&w=majority'
+var mongoDB = 'mongodb://localhost/tokyodriftr';
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true});
 db = mongoose.connection;
 db
