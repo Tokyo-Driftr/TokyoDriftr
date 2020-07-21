@@ -1,3 +1,8 @@
+/* TokyoDriftr/public/playGameState.js 
+    playGameState is the gameplay state where the player can drive
+    The Play state creates all assets for the road scene and sets up the car
+    playGameState also updates the roads, car, camera, and terrain.
+*/
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
@@ -31,33 +36,27 @@ export class playGameState extends gameState{
         this.ready = false
 
         //set up camera
-        const fov = 45;
-        const aspect = this.canvas.width/this.canvas.height;  // the canvas default
-        const near = 0.1;
-        const far = 400;
-        
-        this.objects["camera"] = new THREE.PerspectiveCamera(fov, aspect, near, far);
-        this.objects["camera"].position.set(10, 20, 5);
-        globalThis.camera = this.objects["camera"]
-        globalThis.three = THREE
+        {
+            const fov = 45;
+            const aspect = this.canvas.width/this.canvas.height;  // the canvas default
+            const near = 0.1;
+            const far = 400;
+            
+            this.objects["camera"] = new THREE.PerspectiveCamera(fov, aspect, near, far);
+            this.objects["camera"].position.set(10, 20, 5);
+            globalThis.camera = this.objects["camera"]
+            globalThis.three = THREE
+        }
 
         //set up orbit controls
-        this.camcontrols = new OrbitControls(this.objects["camera"], this.canvas);
-        this.camcontrols.target.set(0, 0, 0);
-        this.camcontrols.update();
-        this.camcontrols.enabled = false;
-        globalThis.controls = this.camcontrols
-        //set up fly controls
-        /*this.flycontrols = new FlyControls( this.objects["camera"], this.canvas);
-        this.flycontrols.rollSpeed = .5;
-        this.flycontrols.dragToLook = true;
-        this.flycontrols.enabled = true;
-        this.flycontrols.update();*/
-
-
-        this.countDown(3);
+        {
+            this.camcontrols = new OrbitControls(this.objects["camera"], this.canvas);
+            this.camcontrols.target.set(0, 0, 0);
+            this.camcontrols.update();
+            this.camcontrols.enabled = false;
+            globalThis.controls = this.camcontrols
+        }
         
-
         //set up global light
         {
             const skyColor = 0xB1E1FF;  // light blue
@@ -78,7 +77,6 @@ export class playGameState extends gameState{
         }
 
         //add plane
-
         {
             var geo = new THREE.PlaneBufferGeometry(2000, 2000, 8, 8);
             var mat = new THREE.MeshBasicMaterial({ color: 0x333333, side: THREE.DoubleSide });
@@ -86,17 +84,8 @@ export class playGameState extends gameState{
             this.objects['plane'].rotateX( - Math.PI / 2);
             this.scene.add(this.objects['plane']);
             GAME_CONTROL.genDust(this.scene)
-            var collisionBody = {
-                type:'box', // type of shape : sphere, box, cylinder 
-                size:[2000,1,2000], // size of shape
-                pos:[0,0,0], // start position in degree
-                rot:[0,0,0], // start rotation in degree
-                move:false, // dynamic or statique
-                density: 100,
-                friction: 1,
-                restitution: 0.2
-            }
         }
+
         //add car, car controler, and road
         {
             const gltfLoader = new GLTFLoader();
@@ -135,6 +124,9 @@ export class playGameState extends gameState{
         var num = (Date.now()-this.startTime)/1000
         if(num > this.count*2){
             switch(this.count){
+                case 0:
+                    this.countDown(3);
+                    break;
                 case 1:
                     this.countDown(2)
                     break;
@@ -143,12 +135,12 @@ export class playGameState extends gameState{
                     break;
                 case 3:
                     this.countDown(0)
+                    this.startTime = Date.now()
                     break;
             }
         }
         
-
-        
+        //if roads are loaded then call road.update()
         if(typeof(this.objects['testRoad']) != "undefined")
             this.objects['testRoad'].update()
 
@@ -181,19 +173,6 @@ export class playGameState extends gameState{
         this.camcontrols.update()
     }
 
-    //For switching between freecam static camera for development features.
-    changeCam(self) {
-        
-        if(self.options.freecam){
-            self.flycontrols.movementSpeed = 20;
-            self.objects['camera'].position.x = this.objects['car'].gltf.scene.position.x;
-            self.objects['camera'].position.y = this.objects['car'].gltf.scene.position.y;
-            self.objects['camera'].position.z = this.objects['car'].gltf.scene.position.z+5;
-            self.objects['camera'].updateProjectionMatrix();
-        }
-        else {
-        }
-    }
     //Creates textGeometry for countdown at the begginning of the race.
     //Each time the countdown changes the old text is deleted and new text is created
     countDown(num) {
@@ -208,7 +187,8 @@ export class playGameState extends gameState{
                 color: 0x3FFAEF //light blue
             } ));
             this.scene.add( this.objects['countdown']  );
-
+            
+            //Variables for the 3d Text Geometry
             var data = {
                 text : num.toString(),
                 size : 8,
@@ -222,15 +202,13 @@ export class playGameState extends gameState{
                 bevelSegments: 10,
             };
 
-
             this.controller = () => {
                 this.textColor = this.objects['countdown'].material.color.getHex();
             }
 
+            //Gets Font datat then loads in 3d Text Geometry
             var loader = new THREE.FontLoader();
-        
             loader.load( 'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',  ( font ) => {
-                
                 var geometry = new THREE.TextGeometry( data.text, {
                     font: font,
                     size: data.size,
@@ -242,15 +220,16 @@ export class playGameState extends gameState{
                     bevelSegments: data.bevelSegments
                 } );
 
+                //Centers the text on screen initially
                 geometry.computeBoundingBox()
                 geometry.center();
                 this.objects['countdown'].geometry.dispose();
                 this.objects['countdown'].geometry = geometry;
-                this.objects['countdown'].position.set(-6,5,0)
+                //sets the countdowns position to be above the car
                 this.objects['countdown'].position.set(this.objects['car'].gltf.scene.position.x,
-                    this.objects['car'].gltf.scene.position.y+5, 
+                    this.objects['car'].gltf.scene.position.y+5.5, 
                     this.objects['car'].gltf.scene.position.z)
-                this.objects['countdown'].rotation.set(0,-1.5708,0)
+                //rotates the text to face towards the camera
                 this.objects['countdown'].rotation.set(0,this.objects['car'].gltf.scene.rotation.y-3.1416,0)
             })
         }
