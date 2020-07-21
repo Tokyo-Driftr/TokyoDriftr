@@ -71,7 +71,7 @@ export class endScreenGameState extends gameState{
         }
 
         var data = {
-            text : "You Finished!\nYour Time: "+this.playerTime.toString().toHHMMSS()+"\nBest Time: "+best.toString().toHHMMSS()+"\nYou're in "+(i+1)+" place",
+            text : "You Finished!\nYour Time: "+this.playerTime.toString().toHHMMSS()+"\nBest Time: "+best.toString().toHHMMSS()+"\nYou're in "+(i+1)+" place\nPress R to Restart!",
             size : .5,
             height : 0.1,
             curveSegments : 10,
