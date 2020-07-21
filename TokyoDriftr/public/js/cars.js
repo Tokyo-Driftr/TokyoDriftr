@@ -241,8 +241,8 @@ export class ae86 extends base_car{
 		this.options.handling = .04
 		this.options.driftHandling = .03 // handling increase in the direction of the drift
 
-		this.options.driftBoostStrength = .4
-		this.options.driftBoostDuration = 50
+		this.options.driftBoostStrength = .2
+		this.options.driftBoostDuration = 80
 		this.options.driftBoostTime = 40
 
 		this.options.maxDriftAngle = .5 //radians
