@@ -12,10 +12,11 @@ class base_car{
 	length = 4
 	collision_bounce = 0
 	center = new THREE.Vector2(0,0)
+	forward = new THREE.Vector2(1,0)
 	dampedAngle = new THREE.Vector2(1,0)
 	road_center_target = null
 	y_axis = new THREE.Vector3(0,1,0)
-	constructor(scene, loader, controller, modelName, gui){
+	constructor(scene, loader, controller, modelName, gui, callback=null){
 		var hitbox_material = new THREE.MeshLambertMaterial( { color: 0x004400, wireframe: true } );
 		var hitbox_geometry = new THREE.BoxGeometry(this.width, 4, this.length);
 		this.hitbox = new THREE.Mesh( hitbox_geometry, hitbox_material );
@@ -30,6 +31,7 @@ class base_car{
 		this.controller = controller
 		
 		this.drifting = false
+		this.driftTime = 0
 		this.endingDrift = false
 		this.driftDirection = 0 //1=left, -1=right
 
@@ -41,6 +43,7 @@ class base_car{
 			function ( gltf ) {
 				self.gltf = gltf
 				scene.add( gltf.scene );
+				if (callback != null) callback(self)
 			},
 			// called while loading is progressing
 			function ( xhr ) {
@@ -80,7 +83,7 @@ class base_car{
 		if(distance < 8) return //no collision
 		console.log("COLLIDE")
 		//reduce speed
-		if(this.velocity > this.options.max_speed/2) this.velocity *= 0.9
+		if(this.velocity > this.options.max_speed/2) this.velocity = Math.min(this.velocity, this.options.max_speed)*0.9
 		//change angle to that of the wall you just hit
 		var colliderRotation = new THREE.Vector2(1,0).rotateAround(this.center, collider.rotation.y)
 		this.direction.rotateAround(colliderRotation, .1)
@@ -97,6 +100,9 @@ class base_car{
 		this.gltf.scene.position.add(reboundDir)
 
 		this.collide_angle_dir = (this.direction.angle() - this.road_center_target.model.rotation.y) / 20
+	}
+	driftBoostReady(){
+		return this.driftTime > this.options.driftBoostTime
 	}
 	update(move){
 		var car = this.gltf.scene
@@ -124,6 +130,9 @@ class base_car{
 
 		}
 		//drift
+		if(this.drifting){
+			this.driftTime++
+		}
 		if(this.controller.brake && this.controller.accelerate && !this.endingDrift){
 			if(!this.drifting && this.controller.turning){
 				//start drift
@@ -140,6 +149,12 @@ class base_car{
 		else if(this.drifting){
 			this.endingDrift = true
 			this.drifting = false
+			if(this.driftBoostReady()){
+				this.velocity += this.options.driftBoostStrength
+			}
+			this.driftTime = 0
+			this.driftBoostTime = this.options.driftBoostDuration
+
 		}
 		if(this.endingDrift){
 			//end drift
@@ -147,23 +162,30 @@ class base_car{
 				this.endingDrift = true
 				console.log("ending drift. dd:", this.driftDeltaDirection.angle(), "td:", this.direction.angle())
 				//unrotate deltadirection
-				this.driftDeltaDirection.rotateAround(this.center, -1 * this.driftDirection * this.options.driftSpeed)
+				var temp = this.direction.clone()
+				temp.rotateAround(this.center, this.driftDeltaDirection.angle())
+				this.driftDeltaDirection.lerp(this.forward, .1)
 				//rotate car direction
-				this.direction.rotateAround(this.center,  this.driftDirection * this.options.driftSpeed)
+				this.direction.lerp(temp.normalize(), .1)
 			}else{
 				this.endingDrift = false
 				this.driftDeltaDirection.set(1,0)
 			}
+		}
+		//handle post-drift boost
+		this.driftBoostTime = Math.max(0, this.driftBoostTime - 1)
+		if (this.velocity > this.options.max_speed && this.driftBoostTime <= 0){
+			this.velocity *= 0.97
 		}
 
 		//handle acceleration
 		if(this.controller.accelerate && move){
 			if (!this.drifting && this.velocity < this.options.max_speed) this.velocity += this.options.acceleration
 		}else if(this.controller.brake){
-			if (this.velocity != 0) this.velocity = Math.max(0, this.velocity - 3*this.options.acceleration)
+			if (this.velocity != 0) this.velocity = Math.max(0, this.velocity - 1*this.options.acceleration)
 		}else{
 			//no input
-			if (this.velocity != 0) this.velocity = Math.max(0, this.velocity - 0.5*this.options.acceleration)
+			if (this.velocity != 0) this.velocity = Math.max(0, this.velocity - 0.2*this.options.acceleration)
 		}
 
 		{
@@ -195,12 +217,16 @@ class base_car{
 }
 
 export class rx7 extends base_car{
-	constructor(scene, loader, controller, gui){
-		super(scene, loader, controller, "rx7_3.glb", gui)
+	constructor(scene, loader, controller, gui, callback=null){
+		super(scene, loader, controller, "rx7_3.glb", gui, callback)
 		this.options.max_speed = .7
 		this.options.acceleration = .02
 		this.options.handling = .03
 		this.options.driftHandling = .01 // handling increase in the direction of the drift
+
+		this.options.driftBoostStrength = .3
+		this.options.driftBoostDuration = 20
+		this.options.driftBoostTime = 50
 
 		this.maxDriftAngle = .3 //radians
 		this.driftSpeed = .01 //rate that the car's orientation changes into and out of drifts
@@ -208,12 +234,16 @@ export class rx7 extends base_car{
 }
 
 export class ae86 extends base_car{
-	constructor(scene, loader, controller, gui){
-		super(scene, loader, controller, "ae86_2.glb", gui)
-		this.options.max_speed = .5
+	constructor(scene, loader, controller, gui, callback=null){
+		super(scene, loader, controller, "ae86_2.glb", gui, callback)
+		this.options.max_speed = .6
 		this.options.acceleration = .025
 		this.options.handling = .04
 		this.options.driftHandling = .03 // handling increase in the direction of the drift
+
+		this.options.driftBoostStrength = .4
+		this.options.driftBoostDuration = 50
+		this.options.driftBoostTime = 40
 
 		this.options.maxDriftAngle = .5 //radians
 		this.options.driftSpeed = .025 //rate that the car's orientation changes into and out of drifts
@@ -221,12 +251,16 @@ export class ae86 extends base_car{
 }
 
 export class civic extends base_car{
-	constructor(scene, loader, controller, gui){
-		super(scene, loader, controller, "civic_hatch.glb", gui)
-		this.options.max_speed = .6
+	constructor(scene, loader, controller, gui, callback=null){
+		super(scene, loader, controller, "civic_hatch.glb", gui, callback)
+		this.options.max_speed = 6.3
 		this.options.acceleration = .02
-		this.options.handling = .07
+		this.options.handling = .06
 		this.options.driftHandling = .01 // handling increase in the direction of the drift
+
+		this.options.driftBoostStrength = .5
+		this.options.driftBoostDuration = 30
+		this.options.driftBoostTime = 800
 
 		this.options.maxDriftAngle = .1 //radians
 		this.options.driftSpeed = .01 //rate that the car's orientation changes into and out of drifts

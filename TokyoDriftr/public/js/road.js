@@ -214,15 +214,38 @@ export class vectorRoad{
 
 export class road{
 	/*
-		road is the master class for the road, it controls all leapfrogging behavior and draws the road
+		road is the master class for the road, it controls all leapfrogging behavior and draws the road.
+		It also has a callback that is called each lap.
 	*/
-	constructor(path, scene, car){
+	constructor(path, scene, car, lapCallback=null){
 		this.car = car
 		this.road_stripes = new road_physics_stripe(path, scene, car)
 		this.road_shape = new vectorRoad(path, scene, car)
+
+		this.oneThirdLap = false
+		this.oneThirdPoint = path[Math.floor(path.length/3)]
+		this.twoThirdsLap = false
+		this.twoThirdsPoint = path[Math.floor(2*path.length/3)]
+		this.finishPoint = path[path.length - 1]
+
+		this.lapCallback = lapCallback
 	}
 	update(){
 		this.road_stripes.update()
+		if(this.car.gltf.scene.position.distanceTo(this.oneThirdPoint) < 10){
+			this.oneThirdLap = true
+			this.twoThirdsLap = false
+		}
+		if(this.car.gltf.scene.position.distanceTo(this.twoThirdsPoint) < 10 && this.oneThirdLap){
+			this.twoThirdsLap = true
+		}
+		if(this.car.gltf.scene.position.distanceTo(this.finishPoint) < 10 && this.oneThirdLap && this.twoThirdsLap){
+			if(this.lapCallback != null)
+				this.lapCallback()
+			else console.log("LAP")
+			this.oneThirdLap = false
+			this.twoThirdsLap = false
+		}
 	}
 }
 
@@ -298,7 +321,7 @@ function gen2dloop(numPoints = 20, radius=100, random_radius=.4){
 
 }
 
-export function testRoad(loader, scene, car){
+export function testRoad(loader, scene, car, loadedCallback=null, lapCallback=null){
 	var path = [
 		(new THREE.Vector3(-20, 0, 0)),
 		(new THREE.Vector3(35 , 0, 0)),
@@ -309,8 +332,11 @@ export function testRoad(loader, scene, car){
 		(new THREE.Vector3(-20, 0, 100)),
 		(new THREE.Vector3(-50, 0, 40)),
 	]
-	path = gen2dpath(20)
-	return new road(path, scene, car)
+	path = gen2dloop(20)
+	
+	var new_road =  new road(path, scene, car, lapCallback)
+	if(loadedCallback != null) loadedCallback(new_road)
+	return new_road
 }
 
 function randVal(mag){
