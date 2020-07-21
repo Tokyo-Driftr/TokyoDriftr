@@ -8,7 +8,8 @@ const user = require('./models/userSchema.js');
 app.use(express.static('public'))
 app.use(bodyParser.json()); 
 
-var mongoDB = 'mongodb://localhost/tokyodriftr';
+//var mongoDB = 'mongodb://localhost/tokyodriftr';
+var mongoDB = 'mongodb://admin:0UGXCXO2fjWXXy8I@SG-TokyoDriftr-36534:27017/admin?ssl=true'
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true});
 db = mongoose.connection;
 db
