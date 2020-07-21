@@ -106,6 +106,7 @@ export class playGameState extends gameState{
                     if(!self.changing){
                         self.changing = true
                         var data = {time: Date.now()-self.startTime, soundEngine: self.objects['soundEngine']}
+                        self.objects['car'].sound.stop()
                         self.manager.setState(new endScreenGameState(self.renderer, self.scene, self.manager, data))
                     }
                 })
