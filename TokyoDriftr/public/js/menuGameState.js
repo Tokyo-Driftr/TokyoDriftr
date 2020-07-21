@@ -27,11 +27,11 @@ export class menuGameState extends gameState{
                 && this.objects["civic_stats"] && this.objects["menu_text_"] 
                 && this.objects["rx7_model"] && this.objects["ae86_model"] 
                 && this.objects["civic_model"] && this.objects["camera"] ) {
-                    
+
                     this.objects["rx7_stats"].position.set(0,0,1000)
                     this.objects["ae86_stats"].position.set(0,0,1000)
                     this.objects["civic_stats"].position.set(0,0,1000)
-                    this.objects["menu_text_"].position.set(0,0,0)
+                    this.objects["menu_text_"].position.set(0,.3,0)
 
                     this.objects["rx7_model"].position.y = -2
                     this.objects["ae86_model"].position.y = -2
@@ -46,17 +46,17 @@ export class menuGameState extends gameState{
                     for ( var i = 0; i < intersects.length; i++ ) {
                         var point = intersects[ i ].point.x
                         if(point < -.5){
-                            this.objects["rx7_stats"].position.set(0,.1,2)
+                            this.objects["rx7_stats"].position.set(0,.17,2)
                             this.objects["menu_text_"].position.set(0,0,100)
                             this.objects["rx7_model"].position.y = -1.8
                         }
                         else if(point > -.5 && point < .5){
-                            this.objects["ae86_stats"].position.set(0,.1,2)
+                            this.objects["ae86_stats"].position.set(0,.17,2)
                             this.objects["menu_text_"].position.set(0,0,100)
                             this.objects["ae86_model"].position.y = -1.8
                         }
                         else if(point > .5){
-                            this.objects["civic_stats"].position.set(0,.1,2)
+                            this.objects["civic_stats"].position.set(0,.17,2)
                             this.objects["menu_text_"].position.set(0,0,100)
                             this.objects["civic_model"].position.y = -1.8
                         }
@@ -100,7 +100,7 @@ export class menuGameState extends gameState{
         this.camcontrols = new OrbitControls(this.objects["camera"], this.canvas);
         this.camcontrols.target.set(0, 0, 0);
         this.camcontrols.update();
-        this.camcontrols.enabled = true;
+        this.camcontrols.enabled = false;
         globalThis.controls = this.camcontrols
 
         //Creating spotlights for the scene
@@ -127,7 +127,7 @@ export class menuGameState extends gameState{
                 var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
                 var sprite = new THREE.Sprite( material );
                 this.splash = sprite
-                sprite.scale.set(2.5,1.75,1)
+                sprite.scale.set(3,1.75,1)
                 sprite.position.set(0,0,4)
                 this.scene.add( sprite );
 
@@ -139,8 +139,8 @@ export class menuGameState extends gameState{
             (map) => {
                 var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
                 var sprite = new THREE.Sprite( material );
-                sprite.scale.set(5,2.5,2)
-                sprite.position.set(0,2.5,0)
+                sprite.scale.set(6,2.5,2)
+                sprite.position.set(0,2.7,0)
                 this.objects["menu_text"] = sprite
                 this.scene.add( sprite );
 
@@ -148,12 +148,12 @@ export class menuGameState extends gameState{
         )  
         //Create Menu Text with Controls Explanation
         loader.load( 
-            'res/menu_text_.png' ,
+            'res/menu_text_2.png' ,
             (map) => {
                 var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
                 var sprite = new THREE.Sprite( material );
-                sprite.scale.set(5,4,4)
-                sprite.position.set(0,0,0)
+                sprite.scale.set(6.25,2.5,4)
+                sprite.position.set(0,.3,0)
                 this.objects["menu_text_"] = sprite
                 this.scene.add( sprite );
 
@@ -165,7 +165,7 @@ export class menuGameState extends gameState{
             (map) => {
                 var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
                 var sprite = new THREE.Sprite( material );
-                sprite.scale.set(2,1.5,1.5)
+                sprite.scale.set(2.5,1.5,1.5)
                 sprite.position.set(-2.5,-1,100)
                 this.objects["rx7_stats"] = sprite
                 this.scene.add( sprite );
@@ -177,7 +177,7 @@ export class menuGameState extends gameState{
             (map) => {
                 var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
                 var sprite = new THREE.Sprite( material );
-                sprite.scale.set(2,1.5,1.5)
+                sprite.scale.set(2.5,1.5,1.5)
                 sprite.position.set(0,-1,100)
                 this.objects["ae86_stats"] = sprite
                 this.scene.add( sprite );
@@ -189,7 +189,7 @@ export class menuGameState extends gameState{
             (map) => {
                 var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
                 var sprite = new THREE.Sprite( material );
-                sprite.scale.set(2,1.5,1.5)
+                sprite.scale.set(2.5,1.5,1.5)
                 sprite.position.set(2.5,-1,100)
                 this.objects["civic_stats"] = sprite
                 this.scene.add( sprite );

@@ -294,7 +294,11 @@ export class playGameState extends gameState{
                 this.objects['countdown'].geometry.dispose();
                 this.objects['countdown'].geometry = geometry;
                 this.objects['countdown'].position.set(-6,5,0)
+                this.objects['countdown'].position.set(this.objects['car'].gltf.scene.position.x,
+                    this.objects['car'].gltf.scene.position.y+5, 
+                    this.objects['car'].gltf.scene.position.z)
                 this.objects['countdown'].rotation.set(0,-1.5708,0)
+                this.objects['countdown'].rotation.set(0,this.objects['car'].gltf.scene.rotation.y-3.1416,0)
             })
         }
     }

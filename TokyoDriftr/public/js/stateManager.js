@@ -12,7 +12,7 @@ export class stateManager {
         this.gui = new GUI()
         this.soundControls = new function() {
             this.volume = .7;
-            this.muted = false;
+            this.muted = true;
         }
         var soundgui = this.gui.add(this.soundControls, 'volume', 0, 1, .05)
         soundgui.onChange(() => {

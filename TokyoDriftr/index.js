@@ -18,7 +18,7 @@ db
 app.get('/res/:name', function (req, res, next) {
   console.log("dirname", path.join(__dirname, 'public'))
   var options = {
-    root: path.join(__dirname, '../Assets'),
+    root: path.join(__dirname, 'Assets'),
     dotfiles: 'deny',
     headers: {
       'x-timestamp': Date.now(),
