@@ -7,6 +7,153 @@ The road holds a list  of n total road assets and "leapfrogs" them from behind t
 
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
+class road_side_deco{
+	/*
+		This class controls all of the decorations that are visible alongside the road during normal gameplay.
+		It holds a data array that stores data about models in this format:
+		{
+			name: <model name.glb>
+			width: <horizontal width, alongside road>
+			dist: <distance from centerpoint of model to edge of model>
+			num: <number of copies of this model to be drawn
+		}
+		Models are assumed to be pre-centered, located in /buildings, and facing in the -y direction
+	*/
+	models_info = [
+		
+		{
+			name: "building_1.glb",
+			width: 22,
+			dist: 22,
+			num: 2
+		},
+		{
+			name: "building_2.glb",
+			width: 20,
+			dist: 18,
+			num: 2
+		},
+		{
+			name: "building_4.glb",
+			width: 18,
+			dist: 18,
+			num: 2
+		},
+		
+		{
+			name: "building_5.glb",
+			width: 17,
+			dist: 17,
+			num: 2
+		},
+		{
+			name: "building_6.glb",
+			width: 20,
+			dist: 18,
+			num: 2
+		},
+		{
+			name: "building_basic_1.glb",
+			width: 13,
+			dist: 16,
+			num: 2
+		},
+		
+		{
+			name: "building_basic_2.glb",
+			width: 20,
+			dist: 18,
+			num: 2
+		},
+		{
+			name: "building_basic_3.glb",
+			width: 30,
+			dist: 22,
+			num: 2
+		},
+		{
+			name: "building_7.glb",
+			width: 16,
+			dist: 25,
+			num: 2
+		},
+		
+	]
+	constructor(path, scene, car, loader, loadedCallback=null){
+		this.car = car
+		var meshes_r = []
+		var meshes_l = []
+		var self = this
+
+		var finishUp = function(callback){
+			console.log("finishup")
+			self.leapFrogger_l = new leapFrogger(path, shuffleList(meshes_l), car)
+			self.leapFrogger_r = new leapFrogger(path, shuffleList(meshes_r), car)
+			callback()
+		}
+		this.models_info.forEach((data, index) => {
+			loader.load(
+				'buildings/' + data.name,
+				// called when the resource is loaded
+				function ( gltf ) {
+					var model = gltf.scene
+					model.rotation.set(0,Math.PI/2,0)
+					model.position.set(-data.dist,0,0)
+					model.scale.set(2,2,2)
+					var group = new THREE.Group()
+					group.add(model)
+					for(var i = 0; i < data.num; i++){
+						var clone = group.clone()
+						scene.add(clone)
+						meshes_r.unshift({
+							"model": clone,
+							"width": data.width,
+							"dist": data.dist,
+
+						})
+					}
+					model.position.set(data.dist,0,0)
+					model.rotation.set(0,-Math.PI/2,0)
+					group = new THREE.Group()
+					group.add(model)
+					for(var i = 0; i < data.num; i++){
+						var clone = group.clone()
+						scene.add(clone)
+						meshes_l.unshift({
+							"model": clone,
+							"width": data.width,
+							"dist": data.dist,
+
+						})
+					}
+					console.log(data.name, index, self.models_info.length)
+					if(index == self.models_info.length-1){
+						console.log("finish")
+						finishUp(loadedCallback)
+						
+					}
+				},
+				// called while loading is progressing
+				function ( xhr ) {
+					console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+				},
+				// called when loading has errors
+				function ( error ) {
+					console.log( 'An error happened', error );
+	
+				}
+			);
+		})
+
+
+	}
+	update(){
+		this.leapFrogger_r.update()
+		this.leapFrogger_l.update()
+	}
+}
+
+
 export class road_physics_stripe{
 	/*
 		This class works by using the leapfrogger to display a dotted line along the center of the road.
@@ -217,10 +364,11 @@ export class road{
 		road is the master class for the road, it controls all leapfrogging behavior and draws the road.
 		It also has a callback that is called each lap.
 	*/
-	constructor(path, scene, car, lapCallback=null){
+	constructor(path, scene, car, loader, lapCallback=null, loadedCallback=null){
 		this.car = car
 		this.road_stripes = new road_physics_stripe(path, scene, car)
 		this.road_shape = new vectorRoad(path, scene, car)
+		this.road_buildings = new road_side_deco(path, scene, car, loader, loadedCallback)
 
 		this.oneThirdLap = false
 		this.oneThirdPoint = path[Math.floor(path.length/3)]
@@ -229,9 +377,14 @@ export class road{
 		this.finishPoint = path[path.length - 1]
 
 		this.lapCallback = lapCallback
+
+		setTimeout(() => {
+			loadedCallback(this)
+		}, 2000);
 	}
 	update(){
 		this.road_stripes.update()
+		this.road_buildings.update()
 		if(this.car.gltf.scene.position.distanceTo(this.oneThirdPoint) < 10){
 			this.oneThirdLap = true
 			this.twoThirdsLap = false
@@ -246,6 +399,7 @@ export class road{
 			this.oneThirdLap = false
 			this.twoThirdsLap = false
 		}
+
 	}
 }
 
@@ -287,7 +441,7 @@ function gen2dpath(numPoints = 10, minSegDist = 15, maxSegDist = 70){
 	return path3d
 }
 
-function gen2dloop(numPoints = 20, radius=100, random_radius=.4){
+function gen2dloop(numPoints = 50, radius=170, random_radius=.3){
 	var path = [
 	]
 	var center = new THREE.Vector2(0,100)
@@ -334,11 +488,21 @@ export function testRoad(loader, scene, car, loadedCallback=null, lapCallback=nu
 	]
 	path = gen2dloop(20)
 	
-	var new_road =  new road(path, scene, car, lapCallback)
-	if(loadedCallback != null) loadedCallback(new_road)
-	return new_road
+	return new road(path, scene, car, loader, lapCallback, loadedCallback)
+
 }
 
 function randVal(mag){
 	return Math.random() * 2 * mag + mag
+}
+
+function shuffleList(list){
+	for (var i = 0; i < list.length; i++){
+		var randomIndex1 = Math.floor(Math.random()*list.length)
+		var randomIndex2 = Math.floor(Math.random()*list.length)
+		var temp = list[randomIndex1]
+		list[randomIndex1] = list[randomIndex2]
+		list[randomIndex2] = temp
+	}
+	return list
 }

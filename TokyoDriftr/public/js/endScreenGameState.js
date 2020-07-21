@@ -1,5 +1,4 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
-import {keyboardControls} from '/js/controller.js'
 import { gameState } from '/js/gameState.js'
 import { playGameState } from '/js/playGameState.js';
 
@@ -17,28 +16,10 @@ String.prototype.toHHMMSS = function () {
 
 export class endScreenGameState extends gameState{
     constructor(renderer,scene,manager,data) {
-        super(manager)
+        super(renderer,scene,manager,{soundEngine: data.soundEngine},'res/tokyo3.wav')
 
-        this.objects = {soundEngine: data.soundEngine}
         this.camcontrols
-        this.renderer = renderer
-        this.canvas = this.renderer.domElement
-        this.scene = scene
-        this.keyControls=new keyboardControls()
-        this.changing = false
         this.playerTime = data.time/1000
-
-        var sound = data.soundEngine.getNewSound()
-		var audioLoader = new THREE.AudioLoader();
-		audioLoader.load( 'res/tokyo3.wav', function( buffer ) {
-			console.log("play sound")
-			sound.setBuffer( buffer );
-			sound.setLoop( true );
-			sound.setVolume( 0 );
-			sound.setLoopStart(0)
-			sound.play();
-		});
-		this.music = sound
     }
     async Entered() {
         this.objects["camera"] = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
@@ -73,7 +54,7 @@ export class endScreenGameState extends gameState{
             console.error('Error:', error);
         });
 
-        if(typeof times == 'undefined' && !(times instanceof Array)){
+        if(times && !(times instanceof Array)){
             var best = 99999
             var i = 0
         }
