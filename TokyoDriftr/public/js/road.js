@@ -441,10 +441,10 @@ function gen2dpath(numPoints = 10, minSegDist = 15, maxSegDist = 70){
 	return path3d
 }
 
-function gen2dloop(numPoints = 50, radius=170, random_radius=.3){
+function gen2dloop(numPoints = 50, radius=200, random_radius=.3){
 	var path = [
 	]
-	var center = new THREE.Vector2(0,100)
+	var center = new THREE.Vector2(0,radius)
 	for(var i = 0; i < numPoints+1; i++){
 		var path_pos = new THREE.Vector2(0,0)
 		path_pos.rotateAround(center, (i / numPoints) * 2 * Math.PI)

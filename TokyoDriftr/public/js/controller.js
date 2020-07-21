@@ -19,7 +19,6 @@ export class keyboardControls{
 		document.addEventListener("keyup", onDocumentKeyUp, false);
 
 		function onDocumentKeyDown(event) {
-			//console.log("WHOOP!", event.key)
 			var key = event.key;
 			if (key == "w" || key == "W" || key == "ArrowUp") {
 				self.accelerate = true
@@ -33,8 +32,6 @@ export class keyboardControls{
 				self.checkTurn()
 			} else if (key == "s" || key == "S" ||key == "ArrowDown" || key == " ") {
 				self.brake = true
-			} else if (key == "t" || key == "T") {
-				PHYSICS_WORLD.toggleHitboxes()
 			} else if (key == "1") {
 				self.choice = true
 				self.num = 1
@@ -48,7 +45,6 @@ export class keyboardControls{
 				self.change=true
 			}
 		}function onDocumentKeyUp(event) {
-			//console.log("WHOOP!", event.key)
 			var key = event.key;
 			if (key == "w" || key == "ArrowUp") {
 				self.accelerate = false

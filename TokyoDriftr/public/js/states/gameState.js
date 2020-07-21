@@ -49,4 +49,35 @@ export class gameState {
             this.music.setVolume( volume )
         }
     }
+
+    //Renders the scene then calls Update()
+    Draw() {
+        this.manager.draw()
+    }
+
+    //Leaving() clears all objects, gemoetry, and materials on the scene when changing to another scene
+    //Leaving() is async so that when objects are being deleted it doesn't start deleting objects in the new scene
+    async Leaving() {
+        function clearThree(obj){
+            while(obj.children.length > 0){ 
+            clearThree(obj.children[0])
+            obj.remove(obj.children[0]);
+            }
+            if(obj.geometry) obj.geometry.dispose()
+        
+            if(obj.material){ 
+                //in case of map, bumpMap, normalMap, envMap ...
+                Object.keys(obj.material).forEach(prop => {
+                    if(!obj.material[prop])
+                    return         
+                    if(typeof obj.material[prop].dispose === 'function')                                  
+                    obj.material[prop].dispose()                                                        
+                })
+                //obj.material.dispose()
+            }
+            return 1
+        }   
+        clearThree(this.scene)
+        this.manager.fadeOut = this.music
+    }
 }

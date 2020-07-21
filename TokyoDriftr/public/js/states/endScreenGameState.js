@@ -1,6 +1,6 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import { gameState } from '/js/states/gameState.js'
-import { menuGameState } from '/js/states/playGameState.js';
+import { menuGameState } from '/js/states/menuGameState.js';
 
 String.prototype.toHHMMSS = function () {
     var sec_num = parseInt(this, 10); // don't forget the second param
@@ -114,9 +114,7 @@ export class endScreenGameState extends gameState{
 
         this.Draw()
     }
-    Draw() {
-        this.manager.draw()
-    }
+
     //Update() watches for any keystrokes and updates any moving objects
     Update() {
         //this.camcontrols.update()
@@ -125,29 +123,5 @@ export class endScreenGameState extends gameState{
                 {choice: choice, soundEngine: this.objects['soundEngine']}))
             this.changing = true
         }
-    }
-    //Leaving() clears all objects, gemoetry, and materials on the scene when changing to another scene
-    //Leaving() is async so that when objects are being deleted it doesn't start deleting objects in the new scene
-    async Leaving() {
-        function clearThree(obj){
-            while(obj.children.length > 0){ 
-            clearThree(obj.children[0])
-            obj.remove(obj.children[0]);
-            }
-            if(obj.geometry) obj.geometry.dispose()
-        
-            if(obj.material){ 
-                //in case of map, bumpMap, normalMap, envMap ...
-                Object.keys(obj.material).forEach(prop => {
-                    if(!obj.material[prop])
-                    return         
-                    if(typeof obj.material[prop].dispose === 'function')                                  
-                    obj.material[prop].dispose()                                                        
-                })
-                //obj.material.dispose()
-            }
-            return 1
-        }   
-        clearThree(this.scene)
     }
 }

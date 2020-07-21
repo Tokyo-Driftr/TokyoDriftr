@@ -82,7 +82,6 @@ class base_car{
 		//check collision
 		var distance = this.proximity(collider.position)
 		if(distance < 8) return //no collision
-		console.log("COLLIDE")
 		//reduce speed
 		if(this.velocity > this.options.max_speed/2) this.velocity = Math.min(this.velocity, this.options.max_speed)*0.9
 		//change angle to that of the wall you just hit
@@ -97,7 +96,6 @@ class base_car{
 		//get the car out of the wall
 		var reboundDir = center.model.position.clone()
 		reboundDir.sub(this.gltf.scene.position).setLength(distance-8)
-		console.log(reboundDir)
 		this.gltf.scene.position.add(reboundDir)
 
 		this.collide_angle_dir = (this.direction.angle() - this.road_center_target.model.rotation.y) / 20
@@ -129,7 +127,6 @@ class base_car{
 
 			//get axis
 			var target_rotation = this.road_center_target.model.rotation.y
-			if(this.collision_bounce == 14) console.log("target", target_rotation, "this", this.direction.angle())
 			var delta_ang = this.road_center_target.model.rotation.y -this.direction.angle()
 			delta_ang = reduceAngle(delta_ang)
 			//this.direction.set(1,0)
@@ -142,6 +139,19 @@ class base_car{
 		//drift
 		if(this.drifting){
 			this.driftTime++
+			//spawn particles at rear
+			if(true){
+				var color = 0x555555
+				if(this.driftBoostReady()) color = 0x6666ff
+				var direction = new THREE.Vector3(-this.direction.y + Math.random(), 0, -this.direction.x+ Math.random())
+				var position = this.gltf.scene.position.clone()
+				console.log("pos1", position)
+				position.sub(new THREE.Vector3(this.direction.y + Math.random(), 0,  this.direction.x + Math.random()))
+				console.log("pos", position)
+				PARTICLES.spawnParticle (this.scene, position, direction, color)
+
+			}
+
 		}
 		if(this.controller.brake && this.controller.accelerate && !this.endingDrift){
 			if(!this.drifting && this.controller.turning){
@@ -170,7 +180,6 @@ class base_car{
 			//end drift
 			if(absangle(this.driftDeltaDirection)*2 > this.options.driftSpeed){
 				this.endingDrift = true
-				console.log("ending drift. dd:", this.driftDeltaDirection.angle(), "td:", this.direction.angle())
 				//unrotate deltadirection
 				var temp = this.direction.clone()
 				temp.rotateAround(this.center, this.driftDeltaDirection.angle())
@@ -209,18 +218,13 @@ class base_car{
 			}
 			this.direction.rotateAround(this.center, steering_angle)
 		}
-		//console.log(this.direction)
 		var delta_velocity = this.direction.clone()
 		delta_velocity.setLength(this.velocity)
 		car.rotation.y = this.direction.angle() + this.driftDeltaDirection.angle()
 		car.position.x += delta_velocity.y
 		car.position.z += delta_velocity.x
-		//delta_velocity.set
-		//console.log("current vel post", this.velocity.length())
-		//car.rotation.y = this.velocity.angleTo(this.axis)
-
+		
 		//update damped angle for camera
-
 		this.dampedAngle.lerp(this.direction, 0.2)
 
 	}
@@ -249,14 +253,14 @@ export class ae86 extends base_car{
 		this.options.max_speed = .6
 		this.options.acceleration = .025
 		this.options.handling = .04
-		this.options.driftHandling = .03 // handling increase in the direction of the drift
+		this.options.driftHandling = .025 // handling increase in the direction of the drift
 
 		this.options.driftBoostStrength = .2
 		this.options.driftBoostDuration = 80
 		this.options.driftBoostTime = 40
 
 		this.options.maxDriftAngle = .5 //radians
-		this.options.driftSpeed = .025 //rate that the car's orientation changes into and out of drifts
+		this.options.driftSpeed = .018 //rate that the car's orientation changes into and out of drifts
 	}
 }
 
@@ -289,7 +293,6 @@ function comp_angl2(ang1, ang2){
 	if (ang1 - ang2 < Math.PI) res = 1
 	else res = -1
 
-	console.log("comp", ang1, "and ", ang2, "res:", res)
 	return res
 }
 

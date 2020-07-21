@@ -26,44 +26,32 @@ export class menuGameState extends gameState{
             event.preventDefault();
             this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
             this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-            if(this.objects["rx7_stats"] && this.objects["ae86_stats"] 
-                && this.objects["civic_stats"] && this.objects["menu_text_"] 
-                && this.objects["rx7_model"] && this.objects["ae86_model"] 
-                && this.objects["civic_model"] && this.objects["camera"] ) {
+            if(this.objectsLoaded() ) {
+                this.resetPositioning()
+                // update the picking ray with the camera and mouse position
+                this.raycaster.setFromCamera( this.mouse, this.objects["camera"] );
 
-                    this.objects["rx7_stats"].position.set(0,0,1000)
-                    this.objects["ae86_stats"].position.set(0,0,1000)
-                    this.objects["civic_stats"].position.set(0,0,1000)
-                    this.objects["menu_text_"].position.set(0,.3,0)
-
-                    this.objects["rx7_model"].position.y = -2
-                    this.objects["ae86_model"].position.y = -2
-                    this.objects["civic_model"].position.y = -2
-
-                    // update the picking ray with the camera and mouse position
-                    this.raycaster.setFromCamera( this.mouse, this.objects["camera"] );
-
-                    // calculate objects intersecting the picking ray
-                    var intersects = this.raycaster.intersectObjects( this.cars, true);
-                
-                    for ( var i = 0; i < intersects.length; i++ ) {
-                        var point = intersects[ i ].point.x
-                        if(point < -.5){
-                            this.objects["rx7_stats"].position.set(0,.17,2)
-                            this.objects["menu_text_"].position.set(0,0,100)
-                            this.objects["rx7_model"].position.y = -1.8
-                        }
-                        else if(point > -.5 && point < .5){
-                            this.objects["ae86_stats"].position.set(0,.17,2)
-                            this.objects["menu_text_"].position.set(0,0,100)
-                            this.objects["ae86_model"].position.y = -1.8
-                        }
-                        else if(point > .5){
-                            this.objects["civic_stats"].position.set(0,.17,2)
-                            this.objects["menu_text_"].position.set(0,0,100)
-                            this.objects["civic_model"].position.y = -1.8
-                        }
+                // calculate objects intersecting the picking ray
+                var intersects = this.raycaster.intersectObjects( this.cars, true);
+            
+                for ( var i = 0; i < intersects.length; i++ ) {
+                    var point = intersects[ i ].point.x
+                    if(point < -.5){
+                        this.objects["rx7_stats"].position.set(0,.17,2)
+                        this.objects["menu_text_"].position.set(0,0,100)
+                        this.objects["rx7_model"].position.y = -1.8
                     }
+                    else if(point > -.5 && point < .5){
+                        this.objects["ae86_stats"].position.set(0,.17,2)
+                        this.objects["menu_text_"].position.set(0,0,100)
+                        this.objects["ae86_model"].position.y = -1.8
+                    }
+                    else if(point > .5){
+                        this.objects["civic_stats"].position.set(0,.17,2)
+                        this.objects["menu_text_"].position.set(0,0,100)
+                        this.objects["civic_model"].position.y = -1.8
+                    }
+                }
             }
         }, false );
         window.addEventListener( 'click', (event) => {
@@ -122,214 +110,205 @@ export class menuGameState extends gameState{
         
         
         //Loading Menu Text and Splash Screen
-        var loader = new THREE.TextureLoader()
-        //Create Splash Screen Logo
-        await loader.load( 
-            'res/logo.png' ,
-            (map) => {
-                var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
-                var sprite = new THREE.Sprite( material );
-                this.splash = sprite
-                sprite.scale.set(3,1.75,1)
-                sprite.position.set(0,0,4)
-                this.scene.add( sprite );
+        {
+            var loader = new THREE.TextureLoader()
+            //Create Splash Screen Logo
+            await loader.load( 
+                'res/logo.png' ,
+                (map) => {
+                    var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
+                    var sprite = new THREE.Sprite( material );
+                    this.splash = sprite
+                    sprite.scale.set(3,1.75,1)
+                    sprite.position.set(0,0,4)
+                    this.scene.add( sprite );
 
-            },
-        )  
-        //Create Menu Text with Controls Explanation
-        loader.load( 
-            'res/menu_text_top.png' ,
-            (map) => {
-                var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
-                var sprite = new THREE.Sprite( material );
-                sprite.scale.set(6,2.5,2)
-                sprite.position.set(0,2.7,0)
-                this.objects["menu_text"] = sprite
-                this.scene.add( sprite );
+                },
+            )  
+            //Create Menu Text with Controls Explanation
+            loader.load( 
+                'res/menu_text_top.png' ,
+                (map) => {
+                    var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
+                    var sprite = new THREE.Sprite( material );
+                    sprite.scale.set(6,2.5,2)
+                    sprite.position.set(0,2.7,0)
+                    this.objects["menu_text"] = sprite
+                    this.scene.add( sprite );
 
-            },
-        )  
-        //Create Menu Text with Controls Explanation
-        loader.load( 
-            'res/menu_text_2.png' ,
-            (map) => {
-                var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
-                var sprite = new THREE.Sprite( material );
-                sprite.scale.set(6.25,2.5,4)
-                sprite.position.set(0,.3,0)
-                this.objects["menu_text_"] = sprite
-                this.scene.add( sprite );
+                },
+            )  
+            //Create Menu Text with Controls Explanation
+            loader.load( 
+                'res/menu_text_2.png' ,
+                (map) => {
+                    var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
+                    var sprite = new THREE.Sprite( material );
+                    sprite.scale.set(6.25,2.5,4)
+                    sprite.position.set(0,.3,0)
+                    this.objects["menu_text_"] = sprite
+                    this.scene.add( sprite );
 
-            },
-        )  
-        //Create Rx7 Stats Display
-        loader.load( 
-            'res/rx7_stats.png' ,
-            (map) => {
-                var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
-                var sprite = new THREE.Sprite( material );
-                sprite.scale.set(2.5,1.5,1.5)
-                sprite.position.set(-2.5,-1,100)
-                this.objects["rx7_stats"] = sprite
-                this.scene.add( sprite );
-            },
-        ) 
-        //Create AE86 Stats Display
-        loader.load( 
-            'res/ae86_stats.png' ,
-            (map) => {
-                var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
-                var sprite = new THREE.Sprite( material );
-                sprite.scale.set(2.5,1.5,1.5)
-                sprite.position.set(0,-1,100)
-                this.objects["ae86_stats"] = sprite
-                this.scene.add( sprite );
-            },
-        )  
-        //Create Civic Stats Display
-        loader.load( 
-            'res/civic_stats.png' ,
-            (map) => {
-                var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
-                var sprite = new THREE.Sprite( material );
-                sprite.scale.set(2.5,1.5,1.5)
-                sprite.position.set(2.5,-1,100)
-                this.objects["civic_stats"] = sprite
-                this.scene.add( sprite );
-            },
-        )  
+                },
+            )  
+            //Create Rx7 Stats Display
+            loader.load( 
+                'res/rx7_stats.png' ,
+                (map) => {
+                    var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
+                    var sprite = new THREE.Sprite( material );
+                    sprite.scale.set(2.5,1.5,1.5)
+                    sprite.position.set(-2.5,-1,100)
+                    this.objects["rx7_stats"] = sprite
+                    this.scene.add( sprite );
+                },
+            ) 
+            //Create AE86 Stats Display
+            loader.load( 
+                'res/ae86_stats.png' ,
+                (map) => {
+                    var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
+                    var sprite = new THREE.Sprite( material );
+                    sprite.scale.set(2.5,1.5,1.5)
+                    sprite.position.set(0,-1,100)
+                    this.objects["ae86_stats"] = sprite
+                    this.scene.add( sprite );
+                },
+            )  
+            //Create Civic Stats Display
+            loader.load( 
+                'res/civic_stats.png' ,
+                (map) => {
+                    var material = new THREE.SpriteMaterial( { map: map, color: 0xffffff } );
+                    var sprite = new THREE.Sprite( material );
+                    sprite.scale.set(2.5,1.5,1.5)
+                    sprite.position.set(2.5,-1,100)
+                    this.objects["civic_stats"] = sprite
+                    this.scene.add( sprite );
+                },
+            ) 
+        } 
 
         //Loading all models onto Scene
-        //Loads Rx7 Model onto scene
-        var gltfLoader = new GLTFLoader();
-        await gltfLoader.load(
-            'res/rx7_3.glb',
-            // called when the resource is loaded
-            ( gltf ) => {
-                self.gltf = gltf
-                self.gltf.scene.scale.set(.5,.5,.5)
-                self.gltf.scene.position.set(-2.5, -2, 0)
-                this.objects["rx7_model"] = self.gltf.scene
-                this.cars.push(self.gltf.scene)
-                this.scene.add( gltf.scene );
-            },
-            // called while loading is progressing
-            function ( xhr ) {
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-            },
-            // called when loading has errors
-            function ( error ) {
-                console.log( 'An error happened', error );
-            }
-        )
-        //Loads AE86 Model onto scene
-        await gltfLoader.load(
-            'res/ae86_2.glb',
-            // called when the resource is loaded
-            ( gltf ) => {
-                self.gltf = gltf
-                self.gltf.scene.scale.set(.5,.5,.5)
-                self.gltf.scene.position.set(0, -2, 0)
-                this.objects["ae86_model"] = self.gltf.scene
-                this.cars.push(self.gltf.scene)
-                this.scene.add( gltf.scene );
-            },
-            // called while loading is progressing
-            function ( xhr ) {
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-            },
-            // called when loading has errors
-            function ( error ) {
-                console.log( 'An error happened', error );
+        {
+            var gltfLoader = new GLTFLoader();
+            //Loads Rx7 Model onto scene
+            await gltfLoader.load(
+                'res/rx7_3.glb',
+                // called when the resource is loaded
+                ( gltf ) => {
+                    self.gltf = gltf
+                    self.gltf.scene.scale.set(.5,.5,.5)
+                    self.gltf.scene.position.set(-2.5, -2, 0)
+                    this.objects["rx7_model"] = self.gltf.scene
+                    this.cars.push(self.gltf.scene)
+                    this.scene.add( gltf.scene );
+                },
+                // called while loading is progressing
+                function ( xhr ) {
+                    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                },
+                // called when loading has errors
+                function ( error ) {
+                    console.log( 'An error happened', error );
+                }
+            )
+            //Loads AE86 Model onto scene
+            await gltfLoader.load(
+                'res/ae86_2.glb',
+                // called when the resource is loaded
+                ( gltf ) => {
+                    self.gltf = gltf
+                    self.gltf.scene.scale.set(.5,.5,.5)
+                    self.gltf.scene.position.set(0, -2, 0)
+                    this.objects["ae86_model"] = self.gltf.scene
+                    this.cars.push(self.gltf.scene)
+                    this.scene.add( gltf.scene );
+                },
+                // called while loading is progressing
+                function ( xhr ) {
+                    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                },
+                // called when loading has errors
+                function ( error ) {
+                    console.log( 'An error happened', error );
 
-            }
-        )
-        //Loads Civic Model onto scene
-        await gltfLoader.load(
-            'res/civic_hatch.glb',
-            // called when the resource is loaded
-            ( gltf ) => {
-                self.gltf = gltf
-                self.gltf.scene.scale.set(.5,.5,.5)
-                self.gltf.scene.position.set(2.5, -2, 0)
-                this.objects["civic_model"] = self.gltf.scene
-                this.cars.push(self.gltf.scene)
-                this.scene.add( gltf.scene );
-            },
-            // called while loading is progressing
-            function ( xhr ) {
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-            },
-            // called when loading has errors
-            function ( error ) {
-                console.log( 'An error happened', error );
+                }
+            )
+            //Loads Civic Model onto scene
+            await gltfLoader.load(
+                'res/civic_hatch.glb',
+                // called when the resource is loaded
+                ( gltf ) => {
+                    self.gltf = gltf
+                    self.gltf.scene.scale.set(.5,.5,.5)
+                    self.gltf.scene.position.set(2.5, -2, 0)
+                    this.objects["civic_model"] = self.gltf.scene
+                    this.cars.push(self.gltf.scene)
+                    this.scene.add( gltf.scene );
+                },
+                // called while loading is progressing
+                function ( xhr ) {
+                    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                },
+                // called when loading has errors
+                function ( error ) {
+                    console.log( 'An error happened', error );
 
-            }
-        )
-        //Loads the Street Scene
-        gltfLoader.load(
-            'res/street_scene.glb',
-            // called when the resource is loaded
-            ( gltf ) => {
-                self.gltf = gltf
-                self.gltf.scene.scale.set(.5,.5,.5)
-                self.gltf.scene.position.set(-1.3, -2, -8)
-                self.gltf.scene.rotation.set(0,.23,0)
+                }
+            )
+            //Loads the Street Scene
+            gltfLoader.load(
+                'res/street_scene.glb',
+                // called when the resource is loaded
+                ( gltf ) => {
+                    self.gltf = gltf
+                    self.gltf.scene.scale.set(.5,.5,.5)
+                    self.gltf.scene.position.set(-1.3, -2, -8)
+                    self.gltf.scene.rotation.set(0,.23,0)
 
-                this.scene.add( gltf.scene );
-            },
-            // called while loading is progressing
-            function ( xhr ) {
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-            },
-            // called when loading has errors
-            function ( error ) {
-                console.log( 'An error happened', error );
+                    this.scene.add( gltf.scene );
+                },
+                // called while loading is progressing
+                function ( xhr ) {
+                    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                },
+                // called when loading has errors
+                function ( error ) {
+                    console.log( 'An error happened', error );
 
-            }
-        )
-
+                }
+            )
+        }
         this.Draw()
-    }
-
-    //Renders the scene then calls Update()
-    Draw() {
-        this.manager.draw()
     }
 
     //Update() watches for any keystrokes and updates any moving objects
     Update() {
-
-        //this.camcontrols.update()
         if(this.splash && this.music.isPlaying) {
             this.scene.remove(this.splash)
             this.splash = null
         }
     }
 
-    //Leaving() clears all objects, gemoetry, and materials on the scene when changing to another scene
-    //Leaving() is async so that when objects are being deleted it doesn't start deleting objects in the new scene
-    async Leaving() {
-        function clearThree(obj){
-            while(obj.children.length > 0){ 
-            clearThree(obj.children[0])
-            obj.remove(obj.children[0]);
-            }
-            if(obj.geometry) obj.geometry.dispose()
-        
-            if(obj.material){ 
-                //in case of map, bumpMap, normalMap, envMap ...
-                Object.keys(obj.material).forEach(prop => {
-                    if(!obj.material[prop])
-                    return         
-                    if(typeof obj.material[prop].dispose === 'function')                                  
-                    obj.material[prop].dispose()                                                        
-                })
-                //obj.material.dispose()
-            }
-            return 1
-        }   
-        clearThree(this.scene)
-        this.manager.fadeOut = this.music
+    //Checks to see if all objects are loaded into the scene
+    objectsLoaded() {
+        return (this.objects["rx7_stats"] && this.objects["ae86_stats"] 
+            && this.objects["civic_stats"] && this.objects["menu_text_"] 
+            && this.objects["rx7_model"] && this.objects["ae86_model"] 
+            && this.objects["civic_model"] && this.objects["camera"])
+    }
+    //Resets position of stats, instructions, car models
+    resetPositioning() {
+        //stats are offscreen until you hover over the car
+        this.objects["rx7_stats"].position.set(0,0,1000)
+        this.objects["ae86_stats"].position.set(0,0,1000)
+        this.objects["civic_stats"].position.set(0,0,1000)
+
+        this.objects["menu_text_"].position.set(0,.3,0)
+
+        this.objects["rx7_model"].position.y = -2
+        this.objects["ae86_model"].position.y = -2
+        this.objects["civic_model"].position.y = -2
     }
 }

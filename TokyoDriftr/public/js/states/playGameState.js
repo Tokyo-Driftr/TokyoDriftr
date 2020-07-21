@@ -125,20 +125,6 @@ export class playGameState extends gameState{
             this.objects['car'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui, setupRoad);
             globalThis.car = this.objects['car']
         }
-        
-        //add the dev option for freecam
-        /*var freecam = this.gui.add(this.options, 'freecam')
-        freecam.onChange(() => {
-            this.changeCam(this)
-        })*/
-        setTimeout(() => {
-            //this.Draw()
-        }, 500);
-    }
-
-    //Renders each frame
-    Draw() {
-        this.manager.draw()
     }
     
     //Update() watches for any keystrokes and updates any moving object and the camera.
@@ -169,51 +155,12 @@ export class playGameState extends gameState{
         this.updateCam()
 
         //after countdown is done let the car move
-        if(!this.options.freecam) {
-            if(this.count == 4) {
-                this.objects['car'].update(true)
-            }
-            else {
-                this.objects['car'].update(false)
-            }
+        if(this.count == 4) {
+            this.objects['car'].update(true)
         }
         else {
-            this.flycontrols.update(this.clock.getDelta())
+            this.objects['car'].update(false)
         }
-        //if at the end of the race 
-        if(this.keyControls.change && !this.changing){
-            this.changing = true
-            var data = {time: Date.now()-this.startTime, soundEngine: this.objects['soundEngine']}
-            this.manager.setState(new endScreenGameState(this.renderer, this.scene, this.manager, data))
-            //this.gui.close()
-        }
-    }
-    //Leaving() clears all objects, gemoetry, and materials on the scene when changing to another scene
-    //Leaving() is async so that when objects are being deleted it doesn't start deleting objects in the new scene
-    async Leaving() {
-        function clearThree(obj){
-            while(obj.children.length > 0){ 
-            clearThree(obj.children[0])
-            obj.remove(obj.children[0]);
-            }
-            if(obj.geometry) obj.geometry.dispose()
-        
-            if(obj.material){ 
-            //in case of map, bumpMap, normalMap, envMap ...
-            Object.keys(obj.material).forEach(prop => {
-                if(!obj.material[prop])
-                return         
-                if(typeof obj.material[prop].dispose === 'function')                                  
-                obj.material[prop].dispose()                                                        
-            })
-            //obj.material.dispose()
-            }
-            return 1
-        }   
-        //this.objects['rx7'].sound.stop()
-        clearThree(this.scene)
-        this.manager.fadeOut = this.music
-        
     }
 
     //Updates the camera position and rotation to be behind the players car.
