@@ -23,39 +23,44 @@ export class menuGameState extends gameState{
             event.preventDefault();
             this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
             this.mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+            if(this.objects["rx7_stats"] && this.objects["ae86_stats"] 
+                && this.objects["civic_stats"] && this.objects["menu_text_"] 
+                && this.objects["rx7_model"] && this.objects["ae86_model"] 
+                && this.objects["civic_model"] && this.objects["camera"] ) {
+                    
+                    this.objects["rx7_stats"].position.set(0,0,1000)
+                    this.objects["ae86_stats"].position.set(0,0,1000)
+                    this.objects["civic_stats"].position.set(0,0,1000)
+                    this.objects["menu_text_"].position.set(0,0,0)
 
-            this.objects["rx7_stats"].position.set(0,0,1000)
-            this.objects["ae86_stats"].position.set(0,0,1000)
-            this.objects["civic_stats"].position.set(0,0,1000)
-            this.objects["menu_text_"].position.set(0,0,0)
+                    this.objects["rx7_model"].position.y = -2
+                    this.objects["ae86_model"].position.y = -2
+                    this.objects["civic_model"].position.y = -2
 
-            this.objects["rx7_model"].position.y = -2
-            this.objects["ae86_model"].position.y = -2
-            this.objects["civic_model"].position.y = -2
+                    // update the picking ray with the camera and mouse position
+                    this.raycaster.setFromCamera( this.mouse, this.objects["camera"] );
 
-            // update the picking ray with the camera and mouse position
-            this.raycaster.setFromCamera( this.mouse, this.objects["camera"] );
-
-            // calculate objects intersecting the picking ray
-            var intersects = this.raycaster.intersectObjects( this.cars, true);
-        
-            for ( var i = 0; i < intersects.length; i++ ) {
-                var point = intersects[ i ].point.x
-                if(point < -.5){
-                    this.objects["rx7_stats"].position.set(0,.1,2)
-                    this.objects["menu_text_"].position.set(0,0,100)
-                    this.objects["rx7_model"].position.y = -1.8
-                }
-                else if(point > -.5 && point < .5){
-                    this.objects["ae86_stats"].position.set(0,.1,2)
-                    this.objects["menu_text_"].position.set(0,0,100)
-                    this.objects["ae86_model"].position.y = -1.8
-                }
-                else if(point > .5){
-                    this.objects["civic_stats"].position.set(0,.1,2)
-                    this.objects["menu_text_"].position.set(0,0,100)
-                    this.objects["civic_model"].position.y = -1.8
-                }
+                    // calculate objects intersecting the picking ray
+                    var intersects = this.raycaster.intersectObjects( this.cars, true);
+                
+                    for ( var i = 0; i < intersects.length; i++ ) {
+                        var point = intersects[ i ].point.x
+                        if(point < -.5){
+                            this.objects["rx7_stats"].position.set(0,.1,2)
+                            this.objects["menu_text_"].position.set(0,0,100)
+                            this.objects["rx7_model"].position.y = -1.8
+                        }
+                        else if(point > -.5 && point < .5){
+                            this.objects["ae86_stats"].position.set(0,.1,2)
+                            this.objects["menu_text_"].position.set(0,0,100)
+                            this.objects["ae86_model"].position.y = -1.8
+                        }
+                        else if(point > .5){
+                            this.objects["civic_stats"].position.set(0,.1,2)
+                            this.objects["menu_text_"].position.set(0,0,100)
+                            this.objects["civic_model"].position.y = -1.8
+                        }
+                    }
             }
         }, false );
         window.addEventListener( 'click', (event) => {
@@ -293,7 +298,7 @@ export class menuGameState extends gameState{
     Update() {
 
         //this.camcontrols.update()
-        if(this.splash != null && this.music.isPlaying) {
+        if(this.splash && this.music.isPlaying) {
             this.scene.remove(this.splash)
             this.splash = null
         }

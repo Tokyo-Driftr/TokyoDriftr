@@ -54,7 +54,7 @@ export class endScreenGameState extends gameState{
             console.error('Error:', error);
         });
 
-        if(typeof times == 'undefined' && !(times instanceof Array)){
+        if(times && !(times instanceof Array)){
             var best = 99999
             var i = 0
         }

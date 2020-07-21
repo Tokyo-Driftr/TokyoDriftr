@@ -263,7 +263,6 @@ export class playGameState extends gameState{
     //Creates textGeometry for countdown at the begginning of the race.
     //Each time the countdown changes the old text is deleted and new text is created
     countDown(num) {
-        console.log(typeof(this.objects['testRoad']) == "undefined" ? false:this.objects['car'].gltf.scene.position.x)
         this.count++
         //Deletes the text object if one is created
         if(num!=3)

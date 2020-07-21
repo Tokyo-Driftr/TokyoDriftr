@@ -31,7 +31,7 @@ export class gameState {
         this.changing = false
     }
     changeVolume(volume) {
-        if(typeof(this.music) != "undefined" && this.music.isPlaying) {
+        if(this.music && this.music.isPlaying) {
             this.music.setVolume( volume )
         }
     }
