@@ -19,13 +19,27 @@ export class stateManager {
         {
             this.gui = new GUI()
             this.soundControls = new function() {
-                this.volume = .7;
+                this.masterVolume = 100;
+                this.musicVolume = 70;
+                this.carVolume = 50;
                 this.muted = false;
             }
-            var soundgui = this.gui.add(this.soundControls, 'volume', 0, 1, .05)
-            soundgui.onChange(() => {
+            var masterVolume = this.gui.add(this.soundControls, 'masterVolume', 0, 100, 1)
+            masterVolume.onChange(() => {
+                if(this.currentState != null && !this.soundControls.muted){
+                    this.currentState.changeVolume(this.soundControls.masterVolume)
+                    this.currentState.changeCarVolume(this.soundControls.masterVolume)
+                }
+            })
+            var musicVolume = this.gui.add(this.soundControls, 'musicVolume', 0, 100, 1)
+            musicVolume.onChange(() => {
                 if(this.currentState != null && !this.soundControls.muted)
-                    this.currentState.changeVolume(this.soundControls.volume)
+                    this.currentState.changeVolume(this.soundControls.masterVolume, this.soundControls.musicVolume)
+            })
+            var carVolume = this.gui.add(this.soundControls, 'carVolume', 0, 100, 1)
+            carVolume.onChange(() => {
+                if(this.currentState != null && !this.soundControls.muted)
+                    this.currentState.changeCarVolume(this.soundControls.masterVolume, this.soundControls.carVolume)
             })
             var mutedgui = this.gui.add(this.soundControls, 'muted')
             mutedgui.onChange(() => {

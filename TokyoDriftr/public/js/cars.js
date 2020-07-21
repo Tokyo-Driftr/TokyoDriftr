@@ -47,11 +47,8 @@ class base_car{
 		this.driftDirection = 0 //1=left, -1=right
 
 		var sound = sound_engine.getNewSound()
-		this.sound = sound
-		console.log(this.sound)
 		var audioLoader = new THREE.AudioLoader();
 		audioLoader.load( 'res/accel.mp3', function( buffer ) {
-
 			sound.setBuffer( buffer );
 			sound.setLoop( true );
 			sound.setVolume( 0.5 );
@@ -59,6 +56,7 @@ class base_car{
 			sound.setLoopEnd(4)
 			sound.play();
 		});
+		this.sound = sound
 
 
 		var self = this

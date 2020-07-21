@@ -34,19 +34,12 @@ export class gameState {
                 if(this.manager.soundControls.muted)
                     sound.setVolume( 0 )
                 else {
-                    sound.setVolume( this.manager.soundControls.volume );
+                    sound.setVolume( ((this.manager.soundControls.masterVolume/100)*(this.manager.soundControls.musicVolume/100)) );
                 }
                 sound.setLoopStart(0)
                 sound.play();
             });
             this.music = sound
-        }
-    }
-    //changeVolume takes in a float changes the volume of the current music
-    //used primarily by the soundControls in stateManager.js
-    changeVolume(volume) {
-        if(this.music && this.music.isPlaying) {
-            this.music.setVolume( volume )
         }
     }
 
@@ -79,5 +72,24 @@ export class gameState {
         }   
         clearThree(this.scene)
         this.manager.fadeOut = this.music
+    }
+
+    //changeVolume takes in a float changes the volume of the current music
+    //used primarily by the soundControls in stateManager.js
+    changeVolume(masterVolume, musicVolume = this.manager.soundControls.musicVolume) {
+        if(this.music && this.music.isPlaying) {
+            masterVolume = masterVolume/100
+            musicVolume = musicVolume/100
+            this.music.setVolume( (masterVolume*musicVolume) )
+        }
+    }
+    changeCarVolume(masterVolume, carVolume = this.manager.soundControls.carVolume) {
+        if(this.objects['car'] && this.objects['car'].sound && this.objects['car'].sound.isPlaying) {
+            masterVolume = masterVolume/100
+            carVolume = carVolume/100
+            console.log(masterVolume)
+            console.log(carVolume)
+            this.objects['car'].sound.setVolume( (masterVolume*carVolume) )
+        }
     }
 }
