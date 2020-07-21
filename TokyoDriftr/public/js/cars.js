@@ -142,6 +142,19 @@ class base_car{
 		//drift
 		if(this.drifting){
 			this.driftTime++
+			//spawn particles at rear
+			if(true){
+				var color = 0x555555
+				if(this.driftBoostReady()) color = 0x6666ff
+				var direction = new THREE.Vector3(-this.direction.y + Math.random(), 0, -this.direction.x+ Math.random())
+				var position = this.gltf.scene.position.clone()
+				console.log("pos1", position)
+				position.sub(new THREE.Vector3(this.direction.y + Math.random(), 0,  this.direction.x + Math.random()))
+				console.log("pos", position)
+				PARTICLES.spawnParticle (this.scene, position, direction, color)
+
+			}
+
 		}
 		if(this.controller.brake && this.controller.accelerate && !this.endingDrift){
 			if(!this.drifting && this.controller.turning){
@@ -249,14 +262,14 @@ export class ae86 extends base_car{
 		this.options.max_speed = .6
 		this.options.acceleration = .025
 		this.options.handling = .04
-		this.options.driftHandling = .03 // handling increase in the direction of the drift
+		this.options.driftHandling = .025 // handling increase in the direction of the drift
 
 		this.options.driftBoostStrength = .2
 		this.options.driftBoostDuration = 80
 		this.options.driftBoostTime = 40
 
 		this.options.maxDriftAngle = .5 //radians
-		this.options.driftSpeed = .025 //rate that the car's orientation changes into and out of drifts
+		this.options.driftSpeed = .018 //rate that the car's orientation changes into and out of drifts
 	}
 }
 

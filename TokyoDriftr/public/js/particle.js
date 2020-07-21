@@ -2,6 +2,7 @@ import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
 let gravity = -5;
 let particleCount = 5;
+let particleSize = 0.07
 var particles = [];
 
 /*
@@ -9,7 +10,7 @@ var particles = [];
 export function spawnParticle (scene, pos, dir, color) {
 	dir.normalize()
 	for (var i = 0; i < particleCount; i++){
-  		var geometry = new THREE.CubeGeometry( 0.05, 0.05, 0.05 );
+  		var geometry = new THREE.CubeGeometry( particleSize, particleSize, particleSize );
   		var material = new THREE.MeshBasicMaterial( { color: color, transparent: true } );
   		var particle = new THREE.Mesh( geometry, material );
   		particle.position.x = pos.x + rand(-0.1, 0.1)
