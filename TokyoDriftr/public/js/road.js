@@ -1,8 +1,11 @@
 /*
 road.js controls the drawing of the in-game road. The road is built from a 3d vector,
-but the y-component is ignored. There are issues with the threejs vector2 at the time of writing this.
+but the y-component is largely ignored. There are issues with the threejs vector2 at the time of writing this.
+The road itself (road plane, pink side highlights, and walls) is drawn by extruding a 2d shape along a path.
 
-The road holds a list  of n total road assets and "leapfrogs" them from behind the player to in front of them as they go along.
+Additional assets, those being the buildings alongside the road, and the dotted center line are loaded at startup, and
+"leapfrogged" from behind the player to in front of them as the player goes along.
+This saves additional reloading and reuse of assets
 */
 
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
@@ -79,16 +82,27 @@ class road_side_deco{
 		},
 		
 	]
+	loaded = false
 	constructor(path, scene, car, loader, loadedCallback=null){
+		/*
+		Path: the 3d list of points making up the road's path
+		scene: a reference to the global scene, for adding models to
+		car: a reference to the car asset, for use within the leapfrogger
+		loadedCallback: called once all models are loaded
+
+		*/
 		this.car = car
 		var meshes_r = []
 		var meshes_l = []
 		var self = this
 
 		var finishUp = function(callback){
-			console.log("finishup")
+			/*
+			This is called once all models have been loaded, and initializes the two leapfroggers
+			*/
 			self.leapFrogger_l = new leapFrogger(path, shuffleList(meshes_l), car)
 			self.leapFrogger_r = new leapFrogger(path, shuffleList(meshes_r), car)
+			self.loaded = true
 			callback()
 		}
 		this.models_info.forEach((data, index) => {
@@ -97,9 +111,11 @@ class road_side_deco{
 				// called when the resource is loaded
 				function ( gltf ) {
 					var model = gltf.scene
+					//position each model the appropriate distance from the road
 					model.rotation.set(0,Math.PI/2,0)
 					model.position.set(-data.dist,0,0)
 					model.scale.set(2,2,2)
+					//each model is placed in its own group so that its rotation and position is "applied"
 					var group = new THREE.Group()
 					group.add(model)
 					for(var i = 0; i < data.num; i++){
@@ -112,6 +128,7 @@ class road_side_deco{
 
 						})
 					}
+					//do the same thing for the left group
 					model.position.set(data.dist,0,0)
 					model.rotation.set(0,-Math.PI/2,0)
 					group = new THREE.Group()
@@ -126,9 +143,7 @@ class road_side_deco{
 
 						})
 					}
-					console.log(data.name, index, self.models_info.length)
 					if(index == self.models_info.length-1){
-						console.log("finish")
 						finishUp(loadedCallback)
 						
 					}
@@ -148,6 +163,7 @@ class road_side_deco{
 
 	}
 	update(){
+		if(!this.loaded) return
 		this.leapFrogger_r.update()
 		this.leapFrogger_l.update()
 	}
@@ -157,8 +173,7 @@ class road_side_deco{
 export class road_physics_stripe{
 	/*
 		This class works by using the leapfrogger to display a dotted line along the center of the road.
-		Leapfrogger takes an optional function that can be called post-update, and this takes advantage
-		of that function in order to update its corresponding physics object
+		The position of the dotted line is also used to calculate collision
 	*/
 	constructor(path, scene, car, numAssets = 40){
 		this.car = car
@@ -186,7 +201,6 @@ export class road_physics_stripe{
 	update(){
 		this.leapFrogger.update()
 		this.car.collide(this.leapFrogger.usedAssets[10].model, this.leapFrogger.usedAssets[12])
-		//if(!this.car.proximity(this.lastPoint.model.position) > 8) console.log("END")
 	}
 
 }
@@ -370,6 +384,9 @@ export class road{
 		this.road_shape = new vectorRoad(path, scene, car)
 		this.road_buildings = new road_side_deco(path, scene, car, loader, loadedCallback)
 
+		/*
+		there are checkpoints at the 1/3 and 2/3 points to ensure that the player isn't just driving the course backwards
+		*/
 		this.oneThirdLap = false
 		this.oneThirdPoint = path[Math.floor(path.length/3)]
 		this.twoThirdsLap = false
@@ -404,6 +421,9 @@ export class road{
 }
 
 function intersect_self(curve, maxSegDist){
+	/*
+	This function determines if a curve contains any two points that are close enough to "intersect".
+	*/
 	if (curve.length < 4) return false
 	var latestPoint = curve[curve.length - 1]
 	for(var i = 0; i < curve.length - 2; i++){
@@ -415,6 +435,9 @@ function intersect_self(curve, maxSegDist){
 }
 
 function gen2dpath(numPoints = 10, minSegDist = 15, maxSegDist = 70){
+	/*
+	Generates a random one-way path
+	*/
 	var path = [
 		(new THREE.Vector2(-40, 0)),
 		(new THREE.Vector2(35 , 0)),
@@ -429,7 +452,6 @@ function gen2dpath(numPoints = 10, minSegDist = 15, maxSegDist = 70){
 		angle.add(path[path.length - 1])
 		path.push(angle)
 		if(intersect_self(path, maxSegDist + 10)){
-			//console.log("INTERSECT")
 			i -= 1
 			path.pop()
 		}
@@ -442,6 +464,9 @@ function gen2dpath(numPoints = 10, minSegDist = 15, maxSegDist = 70){
 }
 
 function gen2dloop(numPoints = 50, radius=200, random_radius=.3){
+	/*
+	Generates a random looping path by first generating a circle and then randomly moving each point along the circle.
+	*/
 	var path = [
 	]
 	var center = new THREE.Vector2(0,radius)
@@ -449,7 +474,6 @@ function gen2dloop(numPoints = 50, radius=200, random_radius=.3){
 		var path_pos = new THREE.Vector2(0,0)
 		path_pos.rotateAround(center, (i / numPoints) * 2 * Math.PI)
 		path.push(path_pos)
-		console.log(i)
 	}
 	
 	var maxSegDist = radius* 2 * Math.PI / numPoints
@@ -466,28 +490,17 @@ function gen2dloop(numPoints = 50, radius=200, random_radius=.3){
 			if(intersect_self(path)) new_path[i] = original_point
 		}
 	}
-	console.log(new_path)
 	for(var i = 0; i < numPoints+1; i++) path[i] = new THREE.Vector3(new_path[i].x, 0, new_path[i].y)
 	//for(var i = 0; i < 3; i++) path.unshift(path.pop())
-	console.log(path)
 	path[path.length-1].copy(path[0])
 	return path
 
 }
 
 export function testRoad(loader, scene, car, loadedCallback=null, lapCallback=null){
-	var path = [
-		(new THREE.Vector3(-20, 0, 0)),
-		(new THREE.Vector3(35 , 0, 0)),
-		(new THREE.Vector3(60, 0, 40)),
-		(new THREE.Vector3(60, 0, 70)),
-		(new THREE.Vector3(40, 0, 90)),
-		(new THREE.Vector3(0, 0, 120)),
-		(new THREE.Vector3(-20, 0, 100)),
-		(new THREE.Vector3(-50, 0, 40)),
-	]
-	path = gen2dloop(20)
-	
+	//creates a basic road
+
+	var path = gen2dloop(20)
 	return new road(path, scene, car, loader, lapCallback, loadedCallback)
 
 }

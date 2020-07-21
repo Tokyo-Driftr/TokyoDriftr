@@ -1,3 +1,13 @@
+/*
+Cars.js controls the display and physics of all the cars in the game. There is a base_car class that
+handles nearly everything, and the specific classes for each car just hold values based on the
+physics properties and the model to display.
+
+The orientation data for the car is held as 2d vectors for ease of rotation. Collisions are calculated based on the
+car's distance to the center of the road. Upon a collision, the car is slightly slowed down,
+and rebounded slightly forward, down the course. The rebound angle is always in the direction of "forward",
+in order to prevent players from turning around backwards.
+*/
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import * as PARTICLES from '/js/particle.js'
 class base_car{
@@ -17,7 +27,7 @@ class base_car{
 	dampedAngle = new THREE.Vector2(1,0)
 	road_center_target = null
 	y_axis = new THREE.Vector3(0,1,0)
-	constructor(scene, loader, controller, modelName, gui, callback=null){
+	constructor(scene, loader, controller, modelName, gui, sound_engine, callback=null){
 		var hitbox_material = new THREE.MeshLambertMaterial( { color: 0x004400, wireframe: true } );
 		var hitbox_geometry = new THREE.BoxGeometry(this.width, 4, this.length);
 		this.hitbox = new THREE.Mesh( hitbox_geometry, hitbox_material );
@@ -36,8 +46,23 @@ class base_car{
 		this.endingDrift = false
 		this.driftDirection = 0 //1=left, -1=right
 
+		var sound = sound_engine.getNewSound()
+		this.sound = sound
+		console.log(this.sound)
+		var audioLoader = new THREE.AudioLoader();
+		audioLoader.load( 'res/accel.mp3', function( buffer ) {
+
+			sound.setBuffer( buffer );
+			sound.setLoop( true );
+			sound.setVolume( 0.5 );
+			sound.setLoopStart(0.1)
+			sound.setLoopEnd(4)
+			sound.play();
+		});
+
+
 		var self = this
-		// Load a glTF resource
+		// Load the model
 		loader.load(
 			'res/' + modelName,
 			// called when the resource is loaded
@@ -56,13 +81,6 @@ class base_car{
 
 			}
 		);
-		/*var guiControls = gui.addFolder("Car Controls")
-        guiControls.add(this.options, 'max_speed', 0, 1, .01).listen()
-        guiControls.add(this.options, 'acceleration', 0, 1, .01).listen()
-        guiControls.add(this.options, 'handling', 0, .1, .01).listen()
-        guiControls.add(this.options, 'driftHandling', 0, .2, .01).listen()
-        guiControls.add(this.options, 'maxDriftAngle', 0, 1, .01).listen()
-        guiControls.add(this.options, 'driftSpeed', 0, 1, .01).listen()*/
 
 	}
 	proximity(targetPosition){
@@ -78,7 +96,10 @@ class base_car{
 		return max
 	}
 	collide(collider, center){
-		//if (this.collision_bounce) return
+		/*
+			This checks for a collision (or more specifically, if the car is a given distance from the collider),
+			and then in the case of a collision, pushes the car towards the second specified "center".
+		*/
 		//check collision
 		var distance = this.proximity(collider.position)
 		if(distance < 8) return //no collision
@@ -114,6 +135,9 @@ class base_car{
 		var car = this.gltf.scene
 		this.hitbox.position.copy(car.position)
 		this.hitbox.rotation.copy(car.rotation)
+
+		var engine_pitch = this.velocity + 0.9
+		this.sound.setPlaybackRate(engine_pitch)
 
 		PARTICLES.particleTick(this.scene)
 
@@ -231,8 +255,8 @@ class base_car{
 }
 
 export class rx7 extends base_car{
-	constructor(scene, loader, controller, gui, callback=null){
-		super(scene, loader, controller, "rx7_3.glb", gui, callback)
+	constructor(scene, loader, controller, gui, sound_engine, callback=null){
+		super(scene, loader, controller, "rx7_3.glb", gui, sound_engine, callback)
 		this.options.max_speed = .7
 		this.options.acceleration = .02
 		this.options.handling = .03
@@ -248,8 +272,8 @@ export class rx7 extends base_car{
 }
 
 export class ae86 extends base_car{
-	constructor(scene, loader, controller, gui, callback=null){
-		super(scene, loader, controller, "ae86_2.glb", gui, callback)
+	constructor(scene, loader, controller, gui, sound_engine, callback=null){
+		super(scene, loader, controller, "ae86_2.glb", gui, sound_engine, callback)
 		this.options.max_speed = .6
 		this.options.acceleration = .025
 		this.options.handling = .04
@@ -265,8 +289,8 @@ export class ae86 extends base_car{
 }
 
 export class civic extends base_car{
-	constructor(scene, loader, controller, gui, callback=null){
-		super(scene, loader, controller, "civic_hatch.glb", gui, callback)
+	constructor(scene, loader, controller, gui, sound_engine, callback=null){
+		super(scene, loader, controller, "civic_hatch.glb", gui, sound_engine, callback)
 		this.options.max_speed = .63
 		this.options.acceleration = .02
 		this.options.handling = .06
@@ -281,9 +305,7 @@ export class civic extends base_car{
 	}
 }
 
-function comp_angle(ang1, ang2){
-	a1 = new THREE.ve
-}
+
 function comp_angl2(ang1, ang2){
 	//returns -1 if ang1 is to the right of ang2, 1 else
 	if (ang1 < 0) ang1 += 2*Math.PI
