@@ -4,7 +4,6 @@ const path = require('path');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser'); 
 const user = require('./TokyoDriftr/models/userSchema.js');
-const PORT = process.env.PORT || 8080
 
 app.use(express.static('./TokyoDriftr/public'))
 app.use(bodyParser.json()); 
@@ -69,4 +68,4 @@ app.get('/alltimes/:course', function(req,res) {
   });
 })
 
-app.listen(PORT, () => console.log(`Listening on ${ PORT }`))
+app.listen(process.env.PORT || 8080, () => console.log(`Listening on ${ PORT }`))
