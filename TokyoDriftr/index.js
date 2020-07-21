@@ -9,7 +9,7 @@ app.use(express.static('public'))
 app.use(bodyParser.json()); 
 
 //var mongoDB = 'mongodb://localhost/tokyodriftr';
-var mongoDB = 'mongodb://admin:0UGXCXO2fjWXXy8I@SG-TokyoDriftr-36534:27017/admin?ssl=true'
+var mongoDB = 'mongodb://admin:m12Klk88muYDD8zr@SG-TokyoDriftr-36539.servers.mongodirector.com:27017/admin'
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true});
 db = mongoose.connection;
 db

@@ -113,6 +113,13 @@ export class playGameState extends gameState{
                 console.log("setupRoad")
                 self.objects['testRoad'] = ROAD.testRoad(gltfLoader, self.scene, car, function(road){
                     self.ready = true
+                }, 
+                function() {
+                    if(!self.changing){
+                        self.changing = true
+                        var data = {time: Date.now()-self.startTime, soundEngine: self.objects['soundEngine']}
+                        self.manager.setState(new endScreenGameState(self.renderer, self.scene, self.manager, data))
+                    }
                 })
                 globalThis.road = self.objects['testRoad']
             }
