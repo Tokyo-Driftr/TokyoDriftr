@@ -49,6 +49,9 @@ export class playGameState extends gameState{
 
     //Setups up initial scene for playGameState
     async Entered() {
+        //this.ready becomes true once all assets are loaded on
+        this.ready = false
+
         //set up camera
         const fov = 45;
         const aspect = this.canvas.width/this.canvas.height;  // the canvas default
@@ -126,12 +129,16 @@ export class playGameState extends gameState{
                 car_class = CARS.civic
                 
             //this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui, this.objects.soundEngine)
-            this.objects['car'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui);
+            var self = this
+            var setupRoad = function(car){
+                console.log("setupRoad")
+                self.objects['testRoad'] = ROAD.testRoad(gltfLoader, self.scene, car, function(road){
+                    self.ready = true
+                })
+                globalThis.road = self.objects['testRoad']
+            }
+            this.objects['car'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui, setupRoad);
             globalThis.car = this.objects['car']
-            setTimeout(() => {
-                this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene, this.objects['car'])
-                globalThis.road = this.objects['testRoad']
-            }, 500);
         }
         //Please remove eventually.  Collision box
         {
@@ -162,7 +169,7 @@ export class playGameState extends gameState{
         this.gui.open()
         
         setTimeout(() => {
-            this.Draw()
+            //this.Draw()
         }, 500);
     }
 
@@ -174,6 +181,7 @@ export class playGameState extends gameState{
     //Update() watches for any keystrokes and updates any moving object and the camera.
     //Update() also handles the countDown
     Update() {
+        if(!this.ready) return
         //Countdown implementation for starting the race.
         var num = (Date.now()-this.startTime)/1000
         if(num > this.count*2){
@@ -256,7 +264,7 @@ export class playGameState extends gameState{
         //rotate to the opposite of velocity vector
         cameraPos.applyAxisAngle(y_axis, car.dampedAngle.angle() + Math.PI)
         //add the position
-        cameraPos.add(car.gltf.scene.position)
+        cameraPos.add(this.objects['car'].gltf.scene.position)
         this.objects['camera'].position.set(cameraPos.x, cameraPos.y, cameraPos.z)
 
         this.camcontrols.target.set(this.objects['car'].gltf.scene.position.x, this.objects['car'].gltf.scene.position.y, this.objects['car'].gltf.scene.position.z)

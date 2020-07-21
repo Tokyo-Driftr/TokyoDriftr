@@ -298,7 +298,7 @@ function gen2dloop(numPoints = 20, radius=100, random_radius=.4){
 
 }
 
-export function testRoad(loader, scene, car){
+export function testRoad(loader, scene, car, callback=null){
 	var path = [
 		(new THREE.Vector3(-20, 0, 0)),
 		(new THREE.Vector3(35 , 0, 0)),
@@ -310,7 +310,10 @@ export function testRoad(loader, scene, car){
 		(new THREE.Vector3(-50, 0, 40)),
 	]
 	path = gen2dpath(20)
-	return new road(path, scene, car)
+	
+	var new_road =  new road(path, scene, car)
+	if(callback != null) callback(new_road)
+	return new_road
 }
 
 function randVal(mag){

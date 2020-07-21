@@ -15,7 +15,7 @@ class base_car{
 	dampedAngle = new THREE.Vector2(1,0)
 	road_center_target = null
 	y_axis = new THREE.Vector3(0,1,0)
-	constructor(scene, loader, controller, modelName, gui){
+	constructor(scene, loader, controller, modelName, gui, callback=null){
 		var hitbox_material = new THREE.MeshLambertMaterial( { color: 0x004400, wireframe: true } );
 		var hitbox_geometry = new THREE.BoxGeometry(this.width, 4, this.length);
 		this.hitbox = new THREE.Mesh( hitbox_geometry, hitbox_material );
@@ -41,6 +41,7 @@ class base_car{
 			function ( gltf ) {
 				self.gltf = gltf
 				scene.add( gltf.scene );
+				if (callback != null) callback(self)
 			},
 			// called while loading is progressing
 			function ( xhr ) {
@@ -195,8 +196,8 @@ class base_car{
 }
 
 export class rx7 extends base_car{
-	constructor(scene, loader, controller, gui){
-		super(scene, loader, controller, "rx7_3.glb", gui)
+	constructor(scene, loader, controller, gui, callback=null){
+		super(scene, loader, controller, "rx7_3.glb", gui, callback)
 		this.options.max_speed = .7
 		this.options.acceleration = .02
 		this.options.handling = .03
@@ -208,8 +209,8 @@ export class rx7 extends base_car{
 }
 
 export class ae86 extends base_car{
-	constructor(scene, loader, controller, gui){
-		super(scene, loader, controller, "ae86_2.glb", gui)
+	constructor(scene, loader, controller, gui, callback=null){
+		super(scene, loader, controller, "ae86_2.glb", gui, callback)
 		this.options.max_speed = .5
 		this.options.acceleration = .025
 		this.options.handling = .04
@@ -221,8 +222,8 @@ export class ae86 extends base_car{
 }
 
 export class civic extends base_car{
-	constructor(scene, loader, controller, gui){
-		super(scene, loader, controller, "civic_hatch.glb", gui)
+	constructor(scene, loader, controller, gui, callback=null){
+		super(scene, loader, controller, "civic_hatch.glb", gui, callback)
 		this.options.max_speed = .6
 		this.options.acceleration = .02
 		this.options.handling = .07
