@@ -46,7 +46,7 @@ export class playGameState extends gameState{
         this.camcontrols = new OrbitControls(this.objects["camera"], this.canvas);
         this.camcontrols.target.set(0, 0, 0);
         this.camcontrols.update();
-        this.camcontrols.enabled = false;
+        this.camcontrols.enabled = true;
         globalThis.controls = this.camcontrols
         //set up fly controls
         /*this.flycontrols = new FlyControls( this.objects["camera"], this.canvas);
@@ -263,6 +263,7 @@ export class playGameState extends gameState{
     //Creates textGeometry for countdown at the begginning of the race.
     //Each time the countdown changes the old text is deleted and new text is created
     countDown(num) {
+        console.log(typeof(this.objects['testRoad']) == "undefined" ? false:this.objects['car'].gltf.scene.position.x)
         this.count++
         //Deletes the text object if one is created
         if(num!=3)
