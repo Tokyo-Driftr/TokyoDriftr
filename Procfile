@@ -1,1 +1,1 @@
-web: node TokyoDriftr/index.js
+web: npm start

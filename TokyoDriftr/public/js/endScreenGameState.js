@@ -34,7 +34,7 @@ export class endScreenGameState extends gameState{
         this.scene.add( this.objects['mesh']  );
 
         var newtime = {time: this.playerTime, course: 3, name:"Name"}
-        await fetch('http://localhost:8080/newtime', {
+        await fetch(document.URL+'newtime', {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
@@ -43,7 +43,7 @@ export class endScreenGameState extends gameState{
             body: JSON.stringify(newtime)
         });
 
-        var times = await fetch('http://localhost:8080/alltimes/3', {
+        var times = await fetch(document.URL+'alltimes/3', {
             method: 'GET'
         })
         .then(response => response.json())
