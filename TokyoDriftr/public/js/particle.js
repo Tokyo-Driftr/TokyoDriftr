@@ -19,32 +19,32 @@ dir - THREE.Vector3 representing the direction the particle should travel
 color - Hexadecimal value representing the color of the particle
 */
 export function spawnParticle (scene, pos, dir, color) {
-	dir.normalize() //normalize direction so particle speed is fairly consistant
-	//Repeats multiple time based off density constant.  Higher the density, the more particles
+	  dir.normalize() //normalize direction so particle speed is fairly consistant
+	  //Repeats multiple time based off density constant.  Higher the density, the more particles
     for (var i = 0; i < density; i++){
         //Creates tiny cube representing particle
-  		var geometry = new THREE.CubeGeometry( 0.05, 0.05, 0.05 );
-  		var material = new THREE.MeshBasicMaterial( { color: color, transparent: true } );
-  		var particle = new THREE.Mesh( geometry, material );
-        //Sets position to the pos vector and randomly offset it
-  		particle.position.x = pos.x + rand(-0.1, 0.1)
-  		particle.position.y = Math.max(pos.y + rand(-0.1, 0.1), 0.01) //Must be >0 to not instantly despawn
-  		particle.position.z = pos.z + rand(-0.1, 0.1)
-  		//particle is added to scene
-        scene.add(particle);
-        //Sets a velocity randomly offset from the passed direction.  Biased to go up
-  		var velocity = new THREE.Vector3(
-  			dir.x * rand(0, 0.25),
-  			dir.y * rand(0, 0.5) + 0.5,
-  			dir.z * rand(0, 0.25)
-  		)
-        //Pair of particle mesh and Vector3 velocity
-  		particles.push({
-  			particle : particle,
-  			velocity : velocity
-  		});
+  		  var geometry = new THREE.CubeGeometry( 0.05, 0.05, 0.05 );
+  		  var material = new THREE.MeshBasicMaterial( { color: color, transparent: true } );
+  		  var particle = new THREE.Mesh( geometry, material );
+          //Sets position to the pos vector and randomly offset it
+  		  particle.position.x = pos.x + rand(-0.1, 0.1)
+  		  particle.position.y = Math.max(pos.y + rand(-0.1, 0.1), 0.01) //Must be >0 to not instantly despawn
+  		  particle.position.z = pos.z + rand(-0.1, 0.1)
+  		  //particle is added to scene
+          scene.add(particle);
+          //Sets a velocity randomly offset from the passed direction.  Biased to go up
+  		  var velocity = new THREE.Vector3(
+  		  	dir.x * rand(0, 0.25),
+  		  	dir.y * rand(0, 0.5) + 0.5,
+  		  	dir.z * rand(0, 0.25)
+  		  )
+          //Pair of particle mesh and Vector3 velocity
+  		  particles.push({
+  		  	particle : particle,
+  		  	velocity : velocity
+  		  });
   	}
- }
+}
 
 /*
 Updates the position and velocity for each particle in the particles lis
