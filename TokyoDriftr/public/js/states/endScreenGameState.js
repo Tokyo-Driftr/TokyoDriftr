@@ -42,7 +42,7 @@ export class endScreenGameState extends gameState{
         }
 
         //Sent the players time to the database and store it
-        var newtime = {time: this.playerTime, course: 4, name:"Name"}
+        var newtime = {time: this.playerTime, course: 5, name:"Name"}
         await fetch(document.URL+'newtime', {
             headers: {
                 'Accept': 'application/json',
@@ -53,7 +53,7 @@ export class endScreenGameState extends gameState{
         });
 
         //Get all times from the database
-        var times = await fetch(document.URL+'alltimes/4', {
+        var times = await fetch(document.URL+'alltimes/5', {
             method: 'GET'
         })
         .then(response => response.json())
