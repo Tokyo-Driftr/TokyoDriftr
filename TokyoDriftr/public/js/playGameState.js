@@ -140,25 +140,6 @@ export class playGameState extends gameState{
             this.objects['car'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui, setupRoad);
             globalThis.car = this.objects['car']
         }
-        //Please remove eventually.  Collision box
-        {
-            var geometry = new THREE.BoxGeometry(5, 5, 5);
-            var material = new THREE.MeshBasicMaterial( { color: 0x4F4F4F } );
-            var cube = new THREE.Mesh( geometry, material );
-            cube.position.set(10, 20, 10);
-            this.scene.add(cube);
-            var collisionBody = {
-                type:'box', // type of shape : sphere, box, cylinder 
-                size:[5,5,5], // size of shape
-                pos:[10,20,10], // start position in degree
-                rot:[0,0,0], // start rotation in degree
-                move:true, // dynamic or statique
-                density: 5,
-                friction: 0.2,
-                restitution: 0.2,
-                belongsTo: 1 << 4,
-            }
-        }
         
         //add the dev option for freecam
         var freecam = this.gui.add(this.options, 'freecam')
