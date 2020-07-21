@@ -1,37 +1,16 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
-import {keyboardControls} from '/js/controller.js'
 import { gameState } from '/js/gameState.js'
 import { playGameState } from '/js/playGameState.js';
 
 
 export class menuGameState extends gameState{
     constructor(renderer,scene,manager,data) {
-        super(manager)
-        
-        this.objects = {soundEngine: data.soundEngine}
+        super(renderer,scene,manager,{soundEngine: data.soundEngine},'res/tokyo2.wav')
+
         this.camcontrols
-        this.renderer = renderer
-        this.canvas = this.renderer.domElement
-        this.scene = scene
-        this.keyControls=new keyboardControls()
-        this.changing = false
         this.splash = null
-
-        //Load menu music
-        var sound = data.soundEngine.getNewSound()
-		var audioLoader = new THREE.AudioLoader();
-		audioLoader.load( 'res/tokyo2.wav', ( buffer ) => {
-			console.log("play sound")
-			sound.setBuffer( buffer );
-			sound.setLoop( true );
-			sound.setVolume( .2 );
-			sound.setLoopStart(0)
-            sound.play();
-		});
-        this.music = sound
-
         this.cars = []
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2( 1, 1 );

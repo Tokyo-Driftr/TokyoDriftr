@@ -2,8 +2,6 @@ import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
 import { FlyControls } from 'https://unpkg.com/three/examples/jsm/controls/FlyControls.js'
 import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
-import { GUI } from 'https://unpkg.com/three/examples/jsm/libs/dat.gui.module.js';
-import {keyboardControls} from '/js/controller.js'
 import * as CARS from '/js/cars.js';
 import * as GAME_CONTROL from '/js/game_control.js';
 import * as ROAD from '/js/road.js';
@@ -12,37 +10,18 @@ import { endScreenGameState } from '/js/endScreenGameState.js';
 
 export class playGameState extends gameState{
     constructor(renderer,scene,manager,data) {
-        super(manager)
+        super(renderer,scene,manager,{soundEngine: data.soundEngine},'res/tokyo1.wav')
         this.options = {
             hit_boxes: false,
             freecam: false
         }
+
         this.choice = data.choice
-        this.objects = {soundEngine: data.soundEngine}
         this.camcontrols
         this.flycontrols
-        this.renderer = renderer
-        this.canvas = this.renderer.domElement
-        this.scene = scene
         this.clock = new THREE.Clock();
         this.scene.background = new THREE.Color('#000000');
-        this.keyControls=new keyboardControls()
-        this.gui = new GUI()
         this.startTime = Date.now()
-        this.changing = false
-        
-        //Add and play music track.
-        var sound = data.soundEngine.getNewSound()
-		var audioLoader = new THREE.AudioLoader();
-		audioLoader.load( 'res/tokyo1.wav', function( buffer ) {
-			console.log("play sound")
-			sound.setBuffer( buffer );
-			sound.setLoop( true );
-			sound.setVolume( .2 );
-			sound.setLoopStart(0)
-			sound.play();
-		});
-        this.music = sound
 
         this.count = 0
     }
@@ -67,11 +46,11 @@ export class playGameState extends gameState{
         this.camcontrols.enabled = false;
         globalThis.controls = this.camcontrols
         //set up fly controls
-        this.flycontrols = new FlyControls( this.objects["camera"], this.canvas);
+        /*this.flycontrols = new FlyControls( this.objects["camera"], this.canvas);
         this.flycontrols.rollSpeed = .5;
         this.flycontrols.dragToLook = true;
         this.flycontrols.enabled = true;
-        this.flycontrols.update();
+        this.flycontrols.update();*/
 
 
         this.countDown(3);
@@ -154,13 +133,10 @@ export class playGameState extends gameState{
         }
         
         //add the dev option for freecam
-        var freecam = this.gui.add(this.options, 'freecam')
+        /*var freecam = this.gui.add(this.options, 'freecam')
         freecam.onChange(() => {
             this.changeCam(this)
-        })
-
-        this.gui.open()
-        
+        })*/
         setTimeout(() => {
             this.Draw()
         }, 500);
