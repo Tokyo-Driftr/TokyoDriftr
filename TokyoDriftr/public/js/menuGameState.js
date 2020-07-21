@@ -50,6 +50,10 @@ export class menuGameState extends gameState{
             this.objects["civic_stats"].position.set(0,0,1000)
             this.objects["menu_text_"].position.set(0,0,0)
 
+            this.objects["rx7_model"].position.y = -2
+            this.objects["ae86_model"].position.y = -2
+            this.objects["civic_model"].position.y = -2
+
             // update the picking ray with the camera and mouse position
             this.raycaster.setFromCamera( this.mouse, this.objects["camera"] );
 
@@ -61,14 +65,17 @@ export class menuGameState extends gameState{
                 if(point < -.5){
                     this.objects["rx7_stats"].position.set(0,.1,2)
                     this.objects["menu_text_"].position.set(0,0,100)
+                    this.objects["rx7_model"].position.y = -1.8
                 }
                 else if(point > -.5 && point < .5){
                     this.objects["ae86_stats"].position.set(0,.1,2)
                     this.objects["menu_text_"].position.set(0,0,100)
+                    this.objects["ae86_model"].position.y = -1.8
                 }
                 else if(point > .5){
                     this.objects["civic_stats"].position.set(0,.1,2)
                     this.objects["menu_text_"].position.set(0,0,100)
+                    this.objects["civic_model"].position.y = -1.8
                 }
             }
         }, false );
@@ -97,7 +104,7 @@ export class menuGameState extends gameState{
                 }
                 if( !this.changing && this.music.isPlaying ) {
                     this.manager.setState(new playGameState(this.renderer, this.scene, this.manager, 
-                        {choice: 3, soundEngine: this.objects['soundEngine']}))
+                        {choice: choice, soundEngine: this.objects['soundEngine']}))
                     this.changing = true
                 }
             }
@@ -217,6 +224,7 @@ export class menuGameState extends gameState{
                 self.gltf = gltf
                 self.gltf.scene.scale.set(.5,.5,.5)
                 self.gltf.scene.position.set(-2.5, -2, 0)
+                this.objects["rx7_model"] = self.gltf.scene
                 this.cars.push(self.gltf.scene)
                 this.scene.add( gltf.scene );
             },
@@ -238,6 +246,7 @@ export class menuGameState extends gameState{
                 self.gltf = gltf
                 self.gltf.scene.scale.set(.5,.5,.5)
                 self.gltf.scene.position.set(0, -2, 0)
+                this.objects["ae86_model"] = self.gltf.scene
                 this.cars.push(self.gltf.scene)
                 this.scene.add( gltf.scene );
             },
@@ -259,6 +268,7 @@ export class menuGameState extends gameState{
                 self.gltf = gltf
                 self.gltf.scene.scale.set(.5,.5,.5)
                 self.gltf.scene.position.set(2.5, -2, 0)
+                this.objects["civic_model"] = self.gltf.scene
                 this.cars.push(self.gltf.scene)
                 this.scene.add( gltf.scene );
             },
