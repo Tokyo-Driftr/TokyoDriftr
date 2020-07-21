@@ -1,3 +1,6 @@
+/*index.js 
+  Handles serving the game to the player and inserting and deleting from Database
+*/
 const express = require('express');
 const app = express();
 const path = require('path');
@@ -9,7 +12,7 @@ const PORT = process.env.PORT || 8080
 app.use(express.static('./TokyoDriftr/public'))
 app.use(bodyParser.json()); 
 
-//var mongoDB = 'mongodb://localhost/tokyodriftr';
+//Creates connection to mongoDB Server
 var mongoDB = 'mongodb://admin:m12Klk88muYDD8zr@SG-TokyoDriftr-36539.servers.mongodirector.com:27017/admin'
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true});
 db = mongoose.connection;
@@ -17,6 +20,7 @@ db
   .on('error', console.error.bind(console, 'DB connection error.'))
   .once('open', console.log.bind(console, 'DB Connection established.'));
 
+//sends assets to game when they are needed
 app.get('/res/:name', function (req, res, next) {
   console.log("dirname", path.join(__dirname, 'TokyoDriftr/public'))
   var options = {
