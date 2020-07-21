@@ -1,10 +1,30 @@
+import { GUI } from 'https://unpkg.com/three/examples/jsm/libs/dat.gui.module.js';
 export class stateManager {
     constructor(renderer, scene) {
-        this.currentState;
+        this.currentState = null;
         this.renderer = renderer
         this.scene = scene
         this.fadeOut = null
         this.ready = false
+
+
+        //Setup GUI with both volume control and mute control
+        this.gui = new GUI()
+        this.soundControls = new function() {
+            this.volume = .7;
+            this.muted = false;
+        }
+        var soundgui = this.gui.add(this.soundControls, 'volume', 0, 1, .05)
+        soundgui.onChange(() => {
+            if(this.currentState != null && !this.soundControls.muted)
+                this.currentState.changeVolume(this.soundControls.volume)
+        })
+        var mutedgui = this.gui.add(this.soundControls, 'muted')
+        mutedgui.onChange(() => {
+            if(this.currentState != null)
+                this.currentState.changeVolume(this.soundControls.muted ? 0:this.soundControls.volume)
+        })
+        this.gui.open()
     }
     //Takes a new state as a parameter
     //Leaves the currentState
@@ -12,7 +32,7 @@ export class stateManager {
     setState(newState) {
         //this.currentState.Leaving()
         this.ready =false
-        if(typeof this.currentState == 'undefined'){
+        if(typeof this.currentState == 'undefined' || this.currentState == null){
             this.currentState = newState;
             newState.Entered()
             this.ready = true
@@ -111,10 +131,12 @@ export class stateManager {
         }
     }
     fadeOutMusic(sound) {
-        var num = sound.getVolume()
-        num -= .01
-        sound.setVolume(num)
-        return num;
+        if(!this.muted){
+            var num = sound.getVolume()
+            num -= .01
+            sound.setVolume(num)
+            return num;
+        }
     }
     
 
