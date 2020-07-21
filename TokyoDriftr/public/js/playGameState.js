@@ -1,12 +1,11 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
-import { FlyControls } from 'https://unpkg.com/three/examples/jsm/controls/FlyControls.js'
 import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
 import * as CARS from '/js/cars.js';
 import * as GAME_CONTROL from '/js/game_control.js';
 import * as ROAD from '/js/road.js';
-import { gameState } from '/js/gameState.js';
-import { endScreenGameState } from '/js/endScreenGameState.js';
+import { gameState } from '/js/states/gameState.js';
+import { endScreenGameState } from '/js/states/endScreenGameState.js';
 
 export class playGameState extends gameState{
     constructor(renderer,scene,manager,data) {

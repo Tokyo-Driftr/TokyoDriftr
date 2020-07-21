@@ -1,6 +1,6 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
-import { gameState } from '/js/gameState.js'
-import { playGameState } from '/js/playGameState.js';
+import { gameState } from '/js/states/gameState.js'
+import { menuGameState } from '/js/states/playGameState.js';
 
 String.prototype.toHHMMSS = function () {
     var sec_num = parseInt(this, 10); // don't forget the second param
@@ -121,7 +121,8 @@ export class endScreenGameState extends gameState{
     Update() {
         //this.camcontrols.update()
         if(this.keyControls.one && !this.changing) {
-            this.manager.setState(new playGameState(this.renderer, this.scene, this.manager))
+            this.manager.setState(new menuGameState(this.renderer, this.scene, this.manager, 
+                {choice: choice, soundEngine: this.objects['soundEngine']}))
             this.changing = true
         }
     }

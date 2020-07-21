@@ -1,8 +1,11 @@
+/* TokyoDriftr/public/menuGameState.js 
+
+*/
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
-import { gameState } from '/js/gameState.js'
-import { playGameState } from '/js/playGameState.js';
+import { gameState } from '/js/states/gameState.js'
+import { playGameState } from '/js/states/playGameState.js';
 
 
 export class menuGameState extends gameState{
