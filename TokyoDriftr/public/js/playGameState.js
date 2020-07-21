@@ -128,10 +128,10 @@ export class playGameState extends gameState{
                 car_class = CARS.civic
                 
             //this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui, this.objects.soundEngine)
-            this.objects['rx7'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui);
-            globalThis.rx7 = this.objects['rx7']
+            this.objects['car'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui);
+            globalThis.car = this.objects['car']
             setTimeout(() => {
-                this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene, this.objects['rx7'])
+                this.objects['testRoad'] = ROAD.testRoad(gltfLoader, this.scene, this.objects['car'])
                 globalThis.road = this.objects['testRoad']
             }, 500);
         }
@@ -195,18 +195,17 @@ export class playGameState extends gameState{
 
         
         if(typeof(this.objects['testRoad']) != "undefined")
-            //console.log("frick")
-        this.objects['testRoad'].update()
+            this.objects['testRoad'].update()
 
         this.updateCam()
 
         //after countdown is done let the car move
         if(!this.options.freecam) {
             if(this.count == 4) {
-                this.objects['rx7'].update(true)
+                this.objects['car'].update(true)
             }
             else {
-                this.objects['rx7'].update(false)
+                this.objects['car'].update(false)
             }
         }
         else {
@@ -257,12 +256,12 @@ export class playGameState extends gameState{
         //calc distance from car
         cameraPos.set(0, 8, camera_distance)
         //rotate to the opposite of velocity vector
-        cameraPos.applyAxisAngle(y_axis, rx7.dampedAngle.angle() + Math.PI)
+        cameraPos.applyAxisAngle(y_axis, car.dampedAngle.angle() + Math.PI)
         //add the position
-        cameraPos.add(rx7.gltf.scene.position)
+        cameraPos.add(car.gltf.scene.position)
         this.objects['camera'].position.set(cameraPos.x, cameraPos.y, cameraPos.z)
 
-        this.camcontrols.target.set(this.objects['rx7'].gltf.scene.position.x, this.objects['rx7'].gltf.scene.position.y, this.objects['rx7'].gltf.scene.position.z)
+        this.camcontrols.target.set(this.objects['car'].gltf.scene.position.x, this.objects['car'].gltf.scene.position.y, this.objects['car'].gltf.scene.position.z)
         this.camcontrols.update()
     }
 
@@ -271,9 +270,9 @@ export class playGameState extends gameState{
         
         if(self.options.freecam){
             self.flycontrols.movementSpeed = 20;
-            self.objects['camera'].position.x = this.objects['rx7'].gltf.scene.position.x;
-            self.objects['camera'].position.y = this.objects['rx7'].gltf.scene.position.y;
-            self.objects['camera'].position.z = this.objects['rx7'].gltf.scene.position.z+5;
+            self.objects['camera'].position.x = this.objects['car'].gltf.scene.position.x;
+            self.objects['camera'].position.y = this.objects['car'].gltf.scene.position.y;
+            self.objects['camera'].position.z = this.objects['car'].gltf.scene.position.z+5;
             self.objects['camera'].updateProjectionMatrix();
         }
         else {

@@ -97,7 +97,7 @@ export class menuGameState extends gameState{
                 }
                 if( !this.changing && this.music.isPlaying ) {
                     this.manager.setState(new playGameState(this.renderer, this.scene, this.manager, 
-                        {choice: 3, soundEngine: this.objects['soundEngine']}))
+                        {choice: choice, soundEngine: this.objects['soundEngine']}))
                     this.changing = true
                 }
             }
@@ -150,7 +150,6 @@ export class menuGameState extends gameState{
                 var sprite = new THREE.Sprite( material );
                 sprite.scale.set(5,2.5,2)
                 sprite.position.set(0,2.5,0)
-                //sprite.position.set(0,1.4,0)
                 this.objects["menu_text"] = sprite
                 this.scene.add( sprite );
 
@@ -164,7 +163,6 @@ export class menuGameState extends gameState{
                 var sprite = new THREE.Sprite( material );
                 sprite.scale.set(5,4,4)
                 sprite.position.set(0,0,0)
-                //sprite.position.set(0,1.4,100)
                 this.objects["menu_text_"] = sprite
                 this.scene.add( sprite );
 
