@@ -1,8 +1,9 @@
 /* TokyoDriftr/public/menuGameState.js 
-
+    menuGameState is the Main Menu State class.
+    Main function of this state is to display controls and stats for each car
+    When a car is clicked that car is loaded into the playGameState
 */
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
-import { OrbitControls } from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js';
 import { gameState } from '/js/states/gameState.js'
 import { playGameState } from '/js/states/playGameState.js';
@@ -22,6 +23,8 @@ export class menuGameState extends gameState{
     //Creates all elements in the scene (Camera, Spotlights, Sprites, Models)
     //All initial positions for the menu scene are also set here
     async Entered() {
+        //Keeps track of current mouse position
+        //When Objects are loaded, detect which car the the cursor is over and display stats for that car
         window.addEventListener( 'mousemove', (event) => {
             event.preventDefault();
             this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
@@ -54,6 +57,8 @@ export class menuGameState extends gameState{
                 }
             }
         }, false );
+        //When mouse clicks
+        //If mouse clicks on a car then change to playGamState with correct car
         window.addEventListener( 'click', (event) => {
             event.preventDefault();
             this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
@@ -64,19 +69,21 @@ export class menuGameState extends gameState{
 
             // calculate objects intersecting the picking ray
             var intersects = this.raycaster.intersectObjects( this.cars, true);
-        
+            
             for ( var i = 0; i < intersects.length; i++ ) {
                 var point = intersects[ i ].point.x
                 var choice = 1
+                //detect which car was clicked on
                 if(point < -.5){
-                    choice = 1
+                    choice = 1 //rx7
                 }
                 else if(point > -.5 && point < .5){
-                    choice = 2
+                    choice = 2 //ae86
                 }
                 else if(point > .5){
-                    choice = 3
+                    choice = 3 //civic
                 }
+                //change to playGameState
                 if( !this.changing && this.music.isPlaying ) {
                     this.manager.setState(new playGameState(this.renderer, this.scene, this.manager, 
                         {choice: choice, soundEngine: this.objects['soundEngine']}))
@@ -87,12 +94,6 @@ export class menuGameState extends gameState{
         //Create Camera positioned to look at the cars
         this.objects["camera"] = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
         this.objects["camera"].position.z = 5;
-        //Cam Controls for Dev purposes
-        this.camcontrols = new OrbitControls(this.objects["camera"], this.canvas);
-        this.camcontrols.target.set(0, 0, 0);
-        this.camcontrols.update();
-        this.camcontrols.enabled = false;
-        globalThis.controls = this.camcontrols
 
         //Creating spotlights for the scene
         {	
@@ -107,8 +108,6 @@ export class menuGameState extends gameState{
             this.scene.add(this.objects['light3'])
         }
 
-        
-        
         //Loading Menu Text and Splash Screen
         {
             var loader = new THREE.TextureLoader()
@@ -283,8 +282,8 @@ export class menuGameState extends gameState{
         this.Draw()
     }
 
-    //Update() watches for any keystrokes and updates any moving objects
     Update() {
+        //When the music is loaded get rid of splash screen
         if(this.splash && this.music.isPlaying) {
             this.scene.remove(this.splash)
             this.splash = null
@@ -298,6 +297,7 @@ export class menuGameState extends gameState{
             && this.objects["rx7_model"] && this.objects["ae86_model"] 
             && this.objects["civic_model"] && this.objects["camera"])
     }
+
     //Resets position of stats, instructions, car models
     resetPositioning() {
         //stats are offscreen until you hover over the car
