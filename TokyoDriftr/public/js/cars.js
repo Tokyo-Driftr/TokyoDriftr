@@ -1,4 +1,5 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import * as PARTICLES from '/js/particle.js'
 class base_car{
 		options = {
 			max_speed: 10,
@@ -100,6 +101,13 @@ class base_car{
 		this.gltf.scene.position.add(reboundDir)
 
 		this.collide_angle_dir = (this.direction.angle() - this.road_center_target.model.rotation.y) / 20
+
+		if (this.velocity > 0.35) {
+			var pdir = reboundDir.clone()
+			pdir.x *= -1;
+			pdir.z *= -1;
+			PARTICLES.spawnParticle (this.scene, this.gltf.scene.position, pdir, 0xFC9800)
+		}
 	}
 	driftBoostReady(){
 		return this.driftTime > this.options.driftBoostTime
@@ -108,6 +116,8 @@ class base_car{
 		var car = this.gltf.scene
 		this.hitbox.position.copy(car.position)
 		this.hitbox.rotation.copy(car.rotation)
+
+		PARTICLES.particleTick(this.scene)
 
 		if(this.collision_bounce > 0){
 			this.collision_bounce--
@@ -253,7 +263,7 @@ export class ae86 extends base_car{
 export class civic extends base_car{
 	constructor(scene, loader, controller, gui, callback=null){
 		super(scene, loader, controller, "civic_hatch.glb", gui, callback)
-		this.options.max_speed = 6.3
+		this.options.max_speed = .63
 		this.options.acceleration = .02
 		this.options.handling = .06
 		this.options.driftHandling = .01 // handling increase in the direction of the drift
