@@ -21,9 +21,10 @@ function main() {
     //Creates scene that objects will be placed on and starts with a default background color
     var scene = new THREE.Scene();
     scene.background = new THREE.Color('#000000');
-
-    var state = new stateManager(renderer, scene)
-    var sound= new soundEngine()
+    var clock = new THREE.Clock()
+    var state = new stateManager(renderer, scene, clock)
+    var sound = new soundEngine()
+    
     state.setState(new menuGameState(renderer, scene, state, {soundEngine: sound}))
 }
 

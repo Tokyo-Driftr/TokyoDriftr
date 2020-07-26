@@ -7,12 +7,13 @@ The constructor sets up all variables that are used in each state and also handl
 */
 import { GUI } from 'https://unpkg.com/three/examples/jsm/libs/dat.gui.module.js';
 export class stateManager {
-    constructor(renderer, scene) {
+    constructor(renderer, scene, clock) {
         this.currentState = null;
         this.renderer = renderer
         this.scene = scene
         this.fadeOut = null
         this.ready = false
+        this.tick = clock
 
 
         //Setup GUI with both volume control and mute control
@@ -43,8 +44,10 @@ export class stateManager {
             })
             var mutedgui = this.gui.add(this.soundControls, 'muted')
             mutedgui.onChange(() => {
-                if(this.currentState != null)
-                    this.currentState.changeVolume(this.soundControls.muted ? 0:this.soundControls.volume)
+                if(this.currentState != null) {
+                    this.currentState.changeVolume(this.soundControls.muted ? 0:this.soundControls.masterVolume, this.soundControls.muted ? 0:this.soundControls.musicVolume)
+                    this.currentState.changeCarVolume(this.soundControls.muted ? 0:this.soundControls.masterVolume, this.soundControls.muted ? 0:this.soundControls.carVolume)
+                }
             })
             this.gui.open()
         }
@@ -94,20 +97,13 @@ export class stateManager {
             tick();
         }, 200)
         
-        var oldTime = Date.now();
-        var tick = function() {
-            var dframe = getFramesPassed();
+        var tick = () => {
+            var dframes = this.tick.getDelta()
+            console.log(dframes)
             render()
             requestAnimationFrame(tick);
         }
-    
-        //Runs at 60 fps, returns how many frames passed since the last tick
-        function getFramesPassed() {
-            var now = Date.now();
-            var dframe = Math.floor((now - oldTime)*3/50)
-            if (dframe > 0) oldTime = Date.now();
-            return dframe;
-        }
+        
     }
     //Fades the music to 0, used to fade out previous states music.
     fadeOutMusic(sound) {

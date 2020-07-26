@@ -27,7 +27,7 @@ class base_car{
 	dampedAngle = new THREE.Vector2(1,0)
 	road_center_target = null
 	y_axis = new THREE.Vector3(0,1,0)
-	constructor(scene, loader, controller, modelName, gui, sound_engine, callback=null){
+	constructor(scene, gameTick, loader, controller, modelName, gui, sound_engine, callback=null){
 		var hitbox_material = new THREE.MeshLambertMaterial( { color: 0x004400, wireframe: true } );
 		var hitbox_geometry = new THREE.BoxGeometry(this.width, 4, this.length);
 		this.hitbox = new THREE.Mesh( hitbox_geometry, hitbox_material );
@@ -40,6 +40,7 @@ class base_car{
 		this.loader = loader
 		this.scene = scene
 		this.controller = controller
+		
 		
 		this.drifting = false
 		this.driftTime = 0
@@ -253,8 +254,8 @@ class base_car{
 }
 
 export class rx7 extends base_car{
-	constructor(scene, loader, controller, gui, sound_engine, callback=null){
-		super(scene, loader, controller, "rx7_3.glb", gui, sound_engine, callback)
+	constructor(scene, gameTick, loader, controller, gui, sound_engine, callback=null){
+		super(scene, gameTick, loader, controller, "rx7_3.glb", gui, sound_engine, callback)
 		this.options.max_speed = .7
 		this.options.acceleration = .02
 		this.options.handling = .03
@@ -270,8 +271,8 @@ export class rx7 extends base_car{
 }
 
 export class ae86 extends base_car{
-	constructor(scene, loader, controller, gui, sound_engine, callback=null){
-		super(scene, loader, controller, "ae86_2.glb", gui, sound_engine, callback)
+	constructor(scene, gameTick, loader, controller, gui, sound_engine, callback=null){
+		super(scene, gameTick, loader, controller, "ae86_2.glb", gui, sound_engine, callback)
 		this.options.max_speed = .6
 		this.options.acceleration = .025
 		this.options.handling = .04
@@ -287,8 +288,8 @@ export class ae86 extends base_car{
 }
 
 export class civic extends base_car{
-	constructor(scene, loader, controller, gui, sound_engine, callback=null){
-		super(scene, loader, controller, "civic_hatch.glb", gui, sound_engine, callback)
+	constructor(scene, gameTick, loader, controller, gui, sound_engine, callback=null){
+		super(scene, gameTick, loader, controller, "civic_hatch.glb", gui, sound_engine, callback)
 		this.options.max_speed = .63
 		this.options.acceleration = .02
 		this.options.handling = .06

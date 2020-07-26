@@ -112,7 +112,7 @@ export class playGameState extends gameState{
                 })
                 globalThis.road = self.objects['testRoad']
             }
-            this.objects['car'] = new car_class(this.scene, gltfLoader, this.keyControls, this.gui, self.objects['soundEngine'], setupRoad);
+            this.objects['car'] = new car_class(this.scene, this.manager.gameTick, gltfLoader, this.keyControls, this.gui, self.objects['soundEngine'], setupRoad);
             globalThis.car = this.objects['car']
         }
     }
