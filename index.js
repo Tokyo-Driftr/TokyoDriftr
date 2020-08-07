@@ -13,7 +13,7 @@ app.use(express.static('./TokyoDriftr/public'))
 app.use(bodyParser.json()); 
 
 //Creates connection to mongoDB Server
-var mongoDB = 'mongodb://admin:m12Klk88muYDD8zr@SG-TokyoDriftr-36539.servers.mongodirector.com:27017/admin'
+var mongoDB = 'mongodb://localhost/tokyodriftr';
 mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true});
 db = mongoose.connection;
 db
